@@ -650,6 +650,162 @@
     height: 100%;
   }
 
+  /* ── Header action buttons ──────────────────────────────────── */
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .header-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 6px;
+    color: #fff;
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+  }
+  .header-btn:hover {
+    background: rgba(255,255,255,0.20);
+    border-color: rgba(255,255,255,0.40);
+  }
+
+  /* ── Export modal ────────────────────────────────────────────── */
+  #export-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  #export-modal.open { display: flex; }
+  #export-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+  }
+  #export-dialog {
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    padding: 26px 26px 20px;
+    width: 360px;
+    max-width: calc(100vw - 32px);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.28);
+  }
+  .exp-title {
+    font-family: 'Buenard', Georgia, serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: #3a4a2e;
+    margin-bottom: 18px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .exp-close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: #bbb;
+    cursor: pointer;
+    line-height: 1;
+    padding: 2px 6px;
+  }
+  .exp-close:hover { color: #555; }
+  .exp-lbl {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #999;
+    margin-bottom: 7px;
+  }
+  .exp-fmt-row, .exp-bg-row { display: flex; gap: 5px; margin-bottom: 16px; }
+  .exp-fmt-btn, .exp-bg-btn {
+    padding: 4px 13px;
+    border-radius: 5px;
+    border: 1.5px solid #c5bfb2;
+    background: #fff;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Jost', sans-serif;
+    letter-spacing: 0.5px;
+    color: #666;
+    transition: all 0.13s;
+  }
+  .exp-fmt-btn:hover, .exp-bg-btn:hover { border-color: #3a4a2e; color: #3a4a2e; }
+  .exp-fmt-btn.active, .exp-bg-btn.active { background: #3a4a2e; color: #fff; border-color: #3a4a2e; }
+  .exp-bg-btn[disabled] { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+  #exp-res-section { margin-bottom: 14px; }
+  .exp-res-row { display: flex; align-items: center; gap: 9px; }
+  .exp-res-row label { font-size: 12px; color: #555; white-space: nowrap; }
+  .exp-res-row input[type=number] {
+    width: 82px;
+    padding: 5px 8px;
+    border: 1.5px solid #c5bfb2;
+    border-radius: 5px;
+    font-size: 13px;
+    font-family: 'Jost', sans-serif;
+    color: #333;
+  }
+  .exp-res-row input[type=number]:focus { outline: none; border-color: #3a4a2e; }
+  .exp-res-hint { font-size: 11px; color: #bbb; }
+  .exp-bw-row { display: flex; align-items: center; margin-bottom: 18px; margin-top: 14px; }
+  .exp-bw-row label {
+    font-size: 13px;
+    color: #555;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .exp-bw-row input[type=checkbox] { cursor: pointer; accent-color: #3a4a2e; width: 14px; height: 14px; }
+  .exp-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .exp-cancel {
+    padding: 7px 16px;
+    border-radius: 6px;
+    border: 1.5px solid #c5bfb2;
+    background: #fff;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Jost', sans-serif;
+    color: #666;
+  }
+  .exp-cancel:hover { border-color: #888; }
+  .exp-go {
+    padding: 7px 20px;
+    border-radius: 6px;
+    border: none;
+    background: #3a4a2e;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Jost', sans-serif;
+    font-weight: 600;
+    color: #fff;
+    transition: background 0.13s;
+    min-width: 96px;
+  }
+  .exp-go:hover { background: #2c3e28; }
+  .exp-go:disabled { background: #aaa; cursor: not-allowed; }
+
+  @media (max-width: 768px) {
+    .header-btn span { display: none; }
+    .header-btn { padding: 6px 10px; gap: 0; }
+  }
+
 </style>
 </head>
 <body>
@@ -659,7 +815,13 @@
     <h2>Phase One</h2>
     <h1>Tennyson</h1>
   </div>
-  <div class="meta">18 lots</div>
+  <div class="header-right">
+    <div class="meta">18 lots</div>
+    <button class="header-btn" onclick="openSaveAsModal()" title="Export map">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span>Export</span>
+    </button>
+  </div>
 </header>
 
 <div class="main">
@@ -738,6 +900,51 @@
   <span>Available: <span class="stat-num" id="s-available">0</span></span>
   <span>Sold: <span class="stat-num" id="s-sold">0</span></span>
   <span>Reserved: <span class="stat-num" id="s-reserved">0</span></span>
+</div>
+
+<!-- ── Export modal ─────────────────────────────────────────────── -->
+<div id="export-modal">
+  <div id="export-backdrop" onclick="closeSaveAsModal()"></div>
+  <div id="export-dialog">
+    <div class="exp-title">Export Map</div>
+    <button class="exp-close" onclick="closeSaveAsModal()">&times;</button>
+
+    <div class="exp-lbl">Format</div>
+    <div class="exp-fmt-row">
+      <button class="exp-fmt-btn active" data-fmt="png"   onclick="setExportFmt('png')">PNG</button>
+      <button class="exp-fmt-btn"        data-fmt="jpeg"  onclick="setExportFmt('jpeg')">JPEG</button>
+      <button class="exp-fmt-btn"        data-fmt="webp"  onclick="setExportFmt('webp')">WEBP</button>
+      <button class="exp-fmt-btn"        data-fmt="svg"   onclick="setExportFmt('svg')">SVG</button>
+      <button class="exp-fmt-btn"        data-fmt="print" onclick="setExportFmt('print')">Print</button>
+    </div>
+
+    <div id="exp-res-section">
+      <div class="exp-lbl">Resolution</div>
+      <div class="exp-res-row">
+        <label for="exp-width">Width</label>
+        <input type="number" id="exp-width" value="2048" min="400" max="4096" step="1">
+        <span class="exp-res-hint">px &nbsp;(max 4096)</span>
+      </div>
+    </div>
+
+    <div id="exp-bg-section">
+      <div class="exp-lbl">Background</div>
+      <div class="exp-bg-row">
+        <button class="exp-bg-btn active" data-bg="shaded"       onclick="setExportBg('shaded')">Shaded</button>
+        <button class="exp-bg-btn"        data-bg="white"        onclick="setExportBg('white')">White</button>
+        <button class="exp-bg-btn"        data-bg="transparent"  id="exp-bg-transp" onclick="setExportBg('transparent')">Transparent</button>
+      </div>
+    </div>
+
+    <div class="exp-bw-row">
+      <label><input type="checkbox" id="exp-bw"> Black &amp; White</label>
+    </div>
+
+    <div class="exp-actions">
+      <button class="exp-cancel" onclick="closeSaveAsModal()">Cancel</button>
+      <button class="exp-go" id="exp-go-btn" onclick="doSaveAs()">Export</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1317,6 +1524,324 @@ function updateOverlay() {
   img.setAttribute('transform', `${pre} ${base}`);
   img.style.opacity = opacity;
 }
+
+// ── Export / Print ─────────────────────────────────────────────────
+
+const EXPORT_CSS = [
+  "@import url('https://fonts.googleapis.com/css2?family=Buenard:wght@400;700&family=Jost:wght@300;400;500;600&display=swap');",
+  ".lot{fill:#ccd9b8;stroke:#8a9e72;stroke-width:1.5}",
+  ".lot.available{fill:url(#pat-available)}",
+  ".lot.sold{fill:url(#pat-sold)}",
+  ".lot.reserved{fill:url(#pat-reserved)}",
+  ".lot.dimmed{opacity:0.2}",
+  ".lot-label-group{pointer-events:none}",
+  ".lot-label-num{font-family:'Jost',sans-serif;font-size:16px;font-weight:600;fill:#3a4a2e;text-anchor:middle;dominant-baseline:middle;letter-spacing:0.5px}",
+  ".lot-label-acres{font-family:'Jost',sans-serif;font-size:9px;font-weight:400;fill:#6b7a5a;text-anchor:middle;dominant-baseline:middle}",
+  ".road-fill{fill:none;stroke:#cac4b4;stroke-width:42;stroke-linecap:round;stroke-linejoin:round}",
+  ".road-edge{fill:none;stroke:#b5ad9e;stroke-width:1;stroke-linecap:round;stroke-linejoin:round}",
+  ".stream-tob{fill:none;stroke:#7aabbf;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}",
+  ".stream-buffer{fill:none;stroke:#7aabbf;stroke-width:1;stroke-dasharray:6,3;opacity:0.6}",
+  ".easement{fill:none;stroke:#e6a800;stroke-width:1.5;stroke-dasharray:5,3;opacity:0.5}",
+  ".road-interior{fill:#cac4b4;stroke:none}",
+  ".road-label{font-family:'Jost',sans-serif;font-size:13px;font-weight:500;fill:#8a8274;letter-spacing:3px;text-transform:uppercase}",
+  ".builder-dot{opacity:0}",
+  ".builder-dot.show{opacity:1}",
+  ".builder-dot.dimmed{opacity:0.15}"
+].join('\n');
+
+let exportFmt = 'png';
+let exportBg  = 'shaded';
+
+// B&W overrides applied on top of EXPORT_CSS when bw=true
+const EXPORT_CSS_BW = [
+  ".lot{fill:#ffffff;stroke:#000000;stroke-width:1.5}",
+  ".road-fill{stroke:none}",
+  ".road-interior{fill:none}",
+  ".road-edge{stroke:#000000;stroke-width:2}",
+  ".road-label{fill:#000000}",
+  // White outer stroke + hard drop shadow on lot labels for legibility
+  ".lot-label-num{fill:#000000;paint-order:stroke fill;stroke:#ffffff;stroke-width:3;stroke-linejoin:round;filter:url(#export-label-shadow)}",
+  ".lot-label-acres{fill:#000000;paint-order:stroke fill;stroke:#ffffff;stroke-width:2;stroke-linejoin:round;filter:url(#export-label-shadow)}",
+  ".stream-tob{stroke:#000000}",
+  ".stream-buffer{stroke:#000000}",
+  ".easement{stroke:#000000}",
+].join('\n');
+
+// Transparent background: give roads a white fill so they remain visible
+const EXPORT_CSS_TRANSP_ROADS = [
+  ".road-fill{fill:none;stroke:#ffffff;stroke-width:42;stroke-linecap:round;stroke-linejoin:round}",
+  ".road-interior{fill:#ffffff}",
+].join('\n');
+
+function openSaveAsModal() {
+  document.getElementById('export-modal').classList.add('open');
+  setExportFmt('png');
+}
+function closeSaveAsModal() {
+  document.getElementById('export-modal').classList.remove('open');
+}
+function setExportFmt(fmt) {
+  exportFmt = fmt;
+  document.querySelectorAll('.exp-fmt-btn').forEach(b => b.classList.toggle('active', b.dataset.fmt === fmt));
+  const raster = ['png','jpeg','webp'].includes(fmt);
+  document.getElementById('exp-res-section').style.display = raster ? '' : 'none';
+  document.getElementById('exp-go-btn').textContent = fmt === 'print' ? 'Print' : 'Export';
+  // Transparent not valid for JPEG (no alpha) or Print
+  const noTransp = fmt === 'jpeg' || fmt === 'print';
+  document.getElementById('exp-bg-transp').toggleAttribute('disabled', noTransp);
+  if (noTransp && exportBg === 'transparent') setExportBg('shaded');
+}
+function setExportBg(bg) {
+  exportBg = bg;
+  document.querySelectorAll('.exp-bg-btn').forEach(b => b.classList.toggle('active', b.dataset.bg === bg));
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('export-modal').classList.contains('open')) closeSaveAsModal();
+});
+
+function _buildExportLegend(ns, bw) {
+  if (!builderView || !BUILDER_DATA.length) return null;
+  const g = document.createElementNS(ns, 'g');
+  const pad = 10, itemH = 18, titleH = 18;
+  const boxH = pad + titleH + BUILDER_DATA.length * itemH + pad;
+  const maxLen = BUILDER_DATA.reduce((m, b) => Math.max(m, b.short.length), 0);
+  const boxW = Math.max(130, maxLen * 7 + 38);
+  const x = 10, y = 944 - boxH; // bottom-left, within 958-height cropped viewBox
+  const bg = document.createElementNS(ns, 'rect');
+  [['x',x],['y',y],['width',boxW],['height',boxH],['fill', bw ? '#fff' : 'rgba(255,255,255,0.92)'],['rx',6],['stroke','#ccc'],['stroke-width',0.5]].forEach(([k,v]) => bg.setAttribute(k,v));
+  g.appendChild(bg);
+  const title = document.createElementNS(ns, 'text');
+  [['x',x+pad],['y',y+pad+11],['font-family','Jost,sans-serif'],['font-size',9],['font-weight',600],['letter-spacing',1],['fill', bw ? '#000' : '#3a4a2e']].forEach(([k,v]) => title.setAttribute(k,v));
+  title.textContent = 'BUILDERS';
+  g.appendChild(title);
+  BUILDER_DATA.forEach((b, i) => {
+    const iy = y + pad + titleH + i * itemH;
+    const sw = document.createElementNS(ns, 'rect');
+    [['x',x+pad],['y',iy+1],['width',12],['height',12],['fill', bw ? 'none' : b.color],['stroke', bw ? '#888' : b.border],['stroke-width',1.5],['rx',2]].forEach(([k,v]) => sw.setAttribute(k,v));
+    g.appendChild(sw);
+    const lbl = document.createElementNS(ns, 'text');
+    [['x',x+pad+16],['y',iy+11],['font-family','Jost,sans-serif'],['font-size',11],['fill', bw ? '#333' : '#444']].forEach(([k,v]) => lbl.setAttribute(k,v));
+    lbl.textContent = b.short;
+    g.appendChild(lbl);
+  });
+  return g;
+}
+
+async function _inlineImages(svgEl) {
+  const imgs = [...svgEl.querySelectorAll('image')];
+  await Promise.all(imgs.map(async el => {
+    const href = el.getAttribute('href') || el.getAttribute('xlink:href');
+    if (!href || href.startsWith('data:')) return;
+    try {
+      const resp = await fetch(href);
+      if (!resp.ok) return;
+      const blob = await resp.blob();
+      const b64 = await new Promise((res, rej) => {
+        const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob);
+      });
+      el.setAttribute('href', b64);
+      el.removeAttribute('xlink:href');
+    } catch(e) { /* leave href as absolute path fallback */ }
+  }));
+}
+
+function _fetchLogoGroup(ns, x, y, displayW, opacity) {
+  try {
+    const srcEl = document.getElementById('jwrg-logo-src');
+    if (!srcEl) return null;
+    const doc = new DOMParser().parseFromString(srcEl.textContent, 'image/svg+xml');
+    const srcSVG = doc.documentElement;
+    if (srcSVG.nodeName === 'parsererror') return null;
+    const nativeW = parseFloat(srcSVG.getAttribute('width') || '343.69');
+    const scale = displayW / nativeW;
+    const g = document.createElementNS(ns, 'g');
+    g.setAttribute('transform', `translate(${x},${y}) scale(${scale})`);
+    g.setAttribute('opacity', String(opacity));
+    [...srcSVG.childNodes].forEach(node => g.appendChild(document.importNode(node, true)));
+    return g;
+  } catch(e) { return null; }
+}
+
+async function _buildExportSVG(bw) {
+  const ns = 'http://www.w3.org/2000/svg';
+  const bgMode = exportBg;
+
+  // 8.5×11 landscape crop: trim 21 SVG units from top and bottom
+  const VB_X = -20, VB_Y = 1, VB_W = 1240, VB_H = 958;
+
+  const clone = document.getElementById('map-svg').cloneNode(true);
+  clone.setAttribute('viewBox', `${VB_X} ${VB_Y} ${VB_W} ${VB_H}`);
+  clone.setAttribute('width', String(VB_W));
+  clone.setAttribute('height', String(VB_H));
+  clone.removeAttribute('style');
+  clone.querySelectorAll('.lot.selected').forEach(el => el.classList.remove('selected'));
+
+  // Make all existing image hrefs absolute for blob-URL rendering
+  clone.querySelectorAll('image').forEach(el => {
+    const href = el.getAttribute('href') || el.getAttribute('xlink:href');
+    if (href && !href.startsWith('data:')) {
+      try { el.setAttribute('href', new URL(href, document.baseURI).href); el.removeAttribute('xlink:href'); } catch(e) {}
+    }
+  });
+  await _inlineImages(clone);
+
+  // Always show topo contour lines in exports, even if user toggled them off
+  const topoEl = clone.querySelector('#topo-overlay');
+  if (topoEl) {
+    const cur = parseFloat(topoEl.style.opacity) || parseFloat(topoEl.getAttribute('opacity')) || 0;
+    topoEl.setAttribute('opacity', String(Math.max(cur, 0.12)));
+    topoEl.style.opacity = '';
+  }
+
+  // Inline JWRG logo as native SVG markup — reads from embedded data block, works on file://
+  const logoG = _fetchLogoGroup(ns, VB_X + VB_W - 138, VB_Y + VB_H - 75, 126, 0.75);
+  if (logoG) clone.appendChild(logoG);
+
+  const defs = clone.querySelector('defs');
+
+  // B&W: remap pattern tile colors for legible grayscale contrast
+  if (bw) {
+    [{ id:'pat-available', bg:'#f2f2f2', fg:'#9a9a9a' },
+     { id:'pat-sold',      bg:'#aaaaaa', fg:'#444444' },
+     { id:'pat-reserved',  bg:'#d8d8d8', fg:'#787878' }
+    ].forEach(({ id, bg: pbg, fg }) => {
+      const pat = clone.querySelector('#' + id);
+      if (!pat) return;
+      const r = pat.querySelector('rect');
+      if (r) { r.setAttribute('fill', pbg); r.setAttribute('fill-opacity', '1'); }
+      pat.querySelectorAll('circle, polygon').forEach(el => el.setAttribute('fill', fg));
+    });
+
+    // Hard drop-shadow filter for lot labels
+    const shadowFilt = document.createElementNS(ns, 'filter');
+    shadowFilt.setAttribute('id', 'export-label-shadow');
+    shadowFilt.setAttribute('x', '-5%'); shadowFilt.setAttribute('y', '-5%');
+    shadowFilt.setAttribute('width', '115%'); shadowFilt.setAttribute('height', '115%');
+    const drop = document.createElementNS(ns, 'feDropShadow');
+    [['dx','1.5'],['dy','1.5'],['stdDeviation','0'],['flood-color','#ffffff'],['flood-opacity','1']].forEach(([k,v]) => drop.setAttribute(k,v));
+    shadowFilt.appendChild(drop);
+    defs.appendChild(shadowFilt);
+  }
+
+  // Embed CSS
+  let css = EXPORT_CSS + (bw ? '\n' + EXPORT_CSS_BW : '');
+  if (bgMode === 'transparent') css += '\n' + EXPORT_CSS_TRANSP_ROADS;
+  const styleEl = document.createElementNS(ns, 'style');
+  styleEl.textContent = css;
+  defs.appendChild(styleEl);
+
+  // Handle the hardcoded background rect in the SVG source
+  const existingBg = clone.querySelector('rect[fill="#eae6dc"]');
+  if (existingBg) {
+    if (bgMode === 'transparent') {
+      existingBg.remove();
+    } else {
+      existingBg.setAttribute('fill', bgMode === 'white' ? '#ffffff' : '#eae6dc');
+    }
+  }
+
+  // Builder legend (bottom-left)
+  const legendG = _buildExportLegend(ns, bw);
+  if (legendG) clone.appendChild(legendG);
+
+  // Title block: "PHASE ONE / TENNYSON" top-right
+  const titleG = document.createElementNS(ns, 'g');
+  const sub = document.createElementNS(ns, 'text');
+  [['x', 12],['y', VB_Y + 20],['text-anchor','start'],
+   ['font-family','Jost,sans-serif'],['font-size','9'],['font-weight','400'],
+   ['letter-spacing','4'],['fill','#8a9e72']].forEach(([k,v]) => sub.setAttribute(k,v));
+  sub.textContent = 'PHASE ONE';
+  titleG.appendChild(sub);
+  const title = document.createElementNS(ns, 'text');
+  [['x', 12],['y', VB_Y + 46],['text-anchor','start'],
+   ['font-family','Buenard,Georgia,serif'],['font-size','26'],['font-weight','700'],
+   ['letter-spacing','2'],['fill','#2c3e28']].forEach(([k,v]) => title.setAttribute(k,v));
+  title.textContent = 'TENNYSON';
+  titleG.appendChild(title);
+  clone.appendChild(titleG);
+
+  // Grayscale filter wrap for B&W (desaturates everything including builder dot colors)
+  if (bw) {
+    const filt = document.createElementNS(ns, 'filter');
+    [['id','export-bw'],['x','0'],['y','0'],['width','100%'],['height','100%'],
+     ['color-interpolation-filters','sRGB']].forEach(([k,v]) => filt.setAttribute(k,v));
+    const mat = document.createElementNS(ns, 'feColorMatrix');
+    mat.setAttribute('type','saturate'); mat.setAttribute('values','0');
+    filt.appendChild(mat);
+    defs.appendChild(filt);
+    const wrap = document.createElementNS(ns, 'g');
+    wrap.setAttribute('filter', 'url(#export-bw)');
+    [...clone.children].filter(c => c.tagName !== 'defs').forEach(c => wrap.appendChild(c));
+    clone.appendChild(wrap);
+  }
+  return new XMLSerializer().serializeToString(clone);
+}
+
+function _triggerDownload(url, name) {
+  const a = Object.assign(document.createElement('a'), {href: url, download: name, style: 'display:none'});
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 4000);
+}
+
+async function doSaveAs() {
+  const bw = document.getElementById('exp-bw').checked;
+  const btn = document.getElementById('exp-go-btn');
+  btn.disabled = true;
+  btn.textContent = 'Working\u2026';
+  try {
+    if (exportFmt === 'print') {
+      await _openPrintWindow(bw);
+      closeSaveAsModal();
+      return;
+    }
+    const svg = await _buildExportSVG(bw);
+    if (exportFmt === 'svg') {
+      _triggerDownload(URL.createObjectURL(new Blob([svg], {type: 'image/svg+xml;charset=utf-8'})), 'tennyson-map.svg');
+      closeSaveAsModal();
+      return;
+    }
+    // Raster
+    const w = Math.min(Math.max(parseInt(document.getElementById('exp-width').value) || 2048, 400), 4096);
+    const h = Math.round(w * 8.5 / 11); // 8.5×11 landscape
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (exportBg !== 'transparent') {
+      ctx.fillStyle = exportBg === 'white' ? '#ffffff' : '#eae6dc'; // #eae6dc = actual map bg
+      ctx.fillRect(0, 0, w, h);
+    }
+    const blobUrl = URL.createObjectURL(new Blob([svg], {type: 'image/svg+xml;charset=utf-8'}));
+    await new Promise((res, rej) => {
+      const img = new Image();
+      img.onload = () => { ctx.drawImage(img, 0, 0, w, h); URL.revokeObjectURL(blobUrl); res(); };
+      img.onerror = e => { URL.revokeObjectURL(blobUrl); rej(e); };
+      img.src = blobUrl;
+    });
+    const mimes = {png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp'};
+    await new Promise(res => {
+      canvas.toBlob(b => {
+        _triggerDownload(URL.createObjectURL(b), `tennyson-map.${exportFmt === 'jpeg' ? 'jpg' : exportFmt}`);
+        res();
+      }, mimes[exportFmt], 0.92);
+    });
+    closeSaveAsModal();
+  } catch(e) {
+    console.error('Export failed:', e);
+    alert('Export failed \u2014 see browser console for details.');
+  } finally {
+    btn.disabled = false;
+    setExportFmt(exportFmt);
+  }
+}
+
+async function _openPrintWindow(bw) {
+  const svg = await _buildExportSVG(bw || false);
+  const win = window.open('', '_blank');
+  if (!win) { alert('Allow popups for this page to use the Print function.'); return; }
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Tennyson \u2014 Phase One</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f5f1eb}svg{display:block;width:100%;height:auto}@media print{@page{size:landscape;margin:.4in}body{background:#fff}}</style></head><body>${svg}<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},500)});<\/script></body></html>`);
+  win.document.close();
+}
 </script>
 <script
   src="https://office.jwrgnc.com/js/forms.js"
@@ -1530,5 +2055,6 @@ lot_id,lot_number,acres,status,builder_name,builder_short,builder_contact,builde
       <g id="builder-dots"></g>
     </svg>
 </script>
+<script id="jwrg-logo-src" type="image/svg+xml"><?xml version="1.0" encoding="UTF-8"?><svg id="b" xmlns="http://www.w3.org/2000/svg" width="343.69" height="172.81" viewBox="0 0 343.69 172.81"><g id="c"><path d="M288.52,112.69c0-1.48-.86-2.81-2.45-2.81h-.43v5.51h.32c1.58,0,2.56-1.15,2.56-2.7Z" fill="#bd3528"/><path d="M207.36,51.57h-1.6v11.71c.45.06.96.06,1.41.06,3.65,0,5.44-2.5,5.44-5.95s-1.54-5.82-5.25-5.82Z" fill="#bd3528"/><path d="M56.21,110.03v5.72h.43c1.66,0,2.59-1.51,2.59-3.02,0-1.94-1.19-2.7-3.02-2.7Z" fill="#bd3528"/><path d="M0,0v172.81h343.69V0H0ZM336.69,165.81H7v-68.33h4v64.33h321.69v-64.33h4v68.33ZM7.88,86.96v-8.45c1.15,1.41,2.56,2.37,4.48,2.37,3.65,0,3.58-3.71,3.58-6.4v-29.57h8.45v30.01c0,2.3-.13,4.74-.9,6.98-1.41,4.1-5.12,6.4-9.34,6.4-2.18,0-4.35-.32-6.27-1.34ZM46.02,80.62c4.29,0,4.16-3.78,4.16-6.98v-28.73h8.45v31.81c0,2.43-.13,4.35-1.41,6.53-2.3,3.9-7.1,5.06-11.33,5.06-6.98,0-12.54-3.39-12.54-10.94v-32.45h8.45v28.35c0,3.2-.13,7.36,4.22,7.36ZM66.8,128.64h-7.02l-3.67-9.97.11,9.97h-6.48v-24.01h6.62c1.66,0,3.46.18,5,.83,2.88,1.22,4.32,4.18,4.32,7.2,0,2.81-1.12,4.82-3.71,6.01l4.82,9.97ZM84.87,79.6v8h-17.28v-42.69h8.45v34.69h8.83ZM84.33,113.77v5.44h-4.97v3.67h5.54v5.76h-12.02v-24.01h12.02v5.65h-5.54v3.49h4.97ZM95.92,104.63h7.92l5.08,24.01h-6.7l-.5-3.06h-4.36l-.54,3.06h-6.69l5.79-24.01ZM90.95,87.6v-42.69h8.45v42.69h-8.45ZM124.29,62.07v8.06h-7.49v9.6h8.64v7.87h-17.09v-42.69h16.96v7.94h-8.51v9.22h7.49ZM126.09,122.88v5.76h-11.34v-24.01h6.48v18.25h4.86ZM129.65,110.39v-5.76h13.61v5.76h-3.56v18.25h-6.48v-18.25h-3.56ZM222.15,87.6h-8.9l-7.49-19.65v19.65h-8.45v-42.69h9.15c3.14,0,6.59.26,9.28,2.05,3.39,2.24,5.06,6.4,5.06,10.37,0,4.86-1.92,8.32-6.08,10.88l7.42,19.39ZM225.48,128.64h-7.02l-3.67-9.97.11,9.97h-6.48v-24.01h6.62c1.66,0,3.46.18,5,.83,2.88,1.22,4.32,4.18,4.32,7.2,0,2.81-1.12,4.82-3.71,6.01l4.82,9.97ZM201.18,110.14l-6.3,2.3c-.11-1.04-.65-2.45-1.91-2.45-2.66,0-2.66,5.51-2.66,7.34,0,1.69-.04,5.94,2.45,5.94,1.8,0,2.27-2.02,2.27-3.46h-2.38v-5.04h9.03v.97c0,2.99-.18,6.48-1.58,9.18-1.44,2.74-4.14,4.14-7.16,4.14-6.95,0-9.25-6.37-9.25-12.31s2.27-12.56,9.25-12.56c4.03,0,6.7,2.38,8.24,5.94ZM182.66,87.6h-7.36l-5.63-25.41-6.21,25.41h-7.36l-8.64-42.69h8.64l4.54,25.41,5.57-25.41h6.66l5.57,25.63,4.22-25.63h8.83l-8.83,42.69ZM148.3,104.63h6.77l2.27,7.42,2.27-7.42h6.69l-5.54,13.86v10.15h-6.48v-10.15l-5.98-13.86ZM261.63,80.62c4.61,0,5.12-5.76,5.18-9.22h-5.38v-7.55h13.7c.06,1.09.06,2.18.06,3.26,0,3.01-.13,6.08-.77,9.02-1.41,6.59-5.7,12.16-12.93,12.16-11.52,0-15.17-12.42-15.17-21.89s3.2-22.14,15.17-22.14c6.53,0,10.75,4.1,12.54,10.11l-8.19,3.2c-.38-2.5-1.09-5.89-4.29-5.89-5.76,0-6.21,10.56-6.21,14.59s.19,14.33,6.27,14.33ZM263.71,122.99c1.66,0,1.66-1.62,1.66-2.84v-15.51h6.48v16.99c0,2.41-.54,4-2.41,5.58-1.55,1.33-3.42,1.87-5.44,1.87-2.2,0-4.43-.61-6.08-2.09-1.87-1.66-2.34-3.85-2.34-6.26v-16.09h6.48v15.51c0,1.22.04,2.84,1.66,2.84ZM248.85,116.4c0,5.62-2.27,12.67-9,12.67-2.56,0-4.93-1.26-6.55-3.2-2.09-2.52-2.7-6.3-2.7-9.47,0-5.65,2.63-12.2,9.21-12.2s9.03,6.62,9.03,12.2ZM238.34,87.6h-8.45v-42.69h8.45v42.69ZM300.1,60.72v-15.81h8.45v42.69h-8.45v-18.88h-8.51v18.88h-8.45v-42.69h8.45v15.81h8.51ZM285.42,104.63c1.8,0,3.67.18,5.33.9,2.92,1.3,4.32,4.18,4.32,7.27,0,5.83-3.92,8.46-9.43,7.96v7.88h-6.48v-24.01h6.26ZM314.18,52.72v-7.81h21.63v7.81h-6.59v34.88h-8.45v-34.88h-6.59ZM336.69,36.45h-4V11H11v25.45h-4V7h329.69v29.45Z" fill="#bd3528"/><path d="M239.78,110.25c-2.23,0-2.45,4.82-2.45,6.37s.14,6.37,2.38,6.37,2.41-4.79,2.41-6.33-.11-6.41-2.34-6.41Z" fill="#bd3528"/><polygon points="99.74 110.39 98.22 120.47 100.96 120.47 99.74 110.39" fill="#bd3528"/><path d="M214.9,110.03v5.72h.43c1.66,0,2.59-1.51,2.59-3.02,0-1.94-1.19-2.7-3.02-2.7Z" fill="#bd3528"/></g></svg></script>
 </body>
 </html>
