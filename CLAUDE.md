@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is an interactive real estate lot map for **Tennyson — Phase One**, a residential subdivision with 18 lots. The primary deliverable is `tennyson-map.html` — a standalone HTML file that requires no build step, bundler, or server.
+This is an interactive real estate lot map for **Tennyson — Phase One**, a residential subdivision with 20 lots (lots 1–18 + Lot A + Lot B). The primary deliverable is `tennyson-map.html` — a standalone HTML file that requires no build step, bundler, or server.
 
-**To preview:** open `tennyson-map.html` directly in a browser — no server needed. SVG geometry and lot data are embedded inline as `<script>` data blocks.
+**To preview:** serve via HTTP (e.g. `python -m http.server 8765`) and open `http://localhost:8765/tennyson-map.html`. The HTML fetches `tennyson-map.svg` and `tennyson-lots.csv` via `fetch()` so a server is required.
 
 ## Architecture
 
