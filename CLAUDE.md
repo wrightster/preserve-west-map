@@ -25,16 +25,16 @@ The project is now split into three runtime files:
 
 ### Load sequence:
 
-1. `loadResources()` reads `#map-svg-src` and `#lots-data` script block content (synchronous, no fetch)
-2. SVG is injected into `#map-svg-container` via `innerHTML`
+1. `loadResources()` fetches `tennyson-map.svg` and `tennyson-lots.csv` in parallel via `fetch()`
+2. SVG text is injected into `#map-svg-container` via `innerHTML`
 3. CSV rows are parsed → `LOT_DATA`, `BUILDER_DATA`, `statuses`, `builderByLot` are built
 4. Lot label text populated from CSV, builder legend HTML rebuilt
 5. Status classes applied to lot polygons, `init()` called
 
-### Embedded data blocks (end of `<body>`):
+### Data files (served alongside HTML):
 
-- `<script id="lots-data" type="text/csv">` — lot data in CSV format; browser ignores this as a script. **Edit this to update statuses, acreage, and builders.** Also update `tennyson-lots.csv` to keep the companion file in sync.
-- `<script id="map-svg-src" type="image/svg+xml">` — full SVG geometry. Edit `tennyson-map.svg` for geometry changes, then copy its content here.
+- `tennyson-lots.csv` — lot data in CSV format. **Edit this to update statuses, acreage, and builders.**
+- `tennyson-map.svg` — full SVG geometry. Edit this for geometry changes (roads, easements, lot polygons).
 
 ## Key Data Structures
 

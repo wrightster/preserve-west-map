@@ -1,0 +1,186 @@
+/* map-styles.css — shared SVG map element styles
+ * Used by: tennyson-map.html (and future map files)
+ * Fonts are loaded by the host HTML page.
+ * ------------------------------------------------------------------ */
+
+/* ── Lots ──────────────────────────────────────────────────────────── */
+.lot {
+  fill: #ccd9b8;
+  stroke: #8a9e72;
+  stroke-width: 1.5;
+  cursor: pointer;
+  transition: fill 0.15s, stroke-width 0.15s, opacity 0.25s;
+}
+.lot:hover {
+  fill: #b8cda0;
+  stroke-width: 2.5;
+  stroke: #6a8a52;
+}
+.lot.selected {
+  stroke: #2c3e28;
+  stroke-width: 3;
+  filter: drop-shadow(0 0 6px rgba(44,62,40,0.4));
+}
+.lot.available { fill: url(#pat-available); }
+.lot.sold      { fill: url(#pat-sold); }
+.lot.reserved  { fill: url(#pat-reserved); }
+.lot.dimmed    { opacity: 0.2; }
+
+/* ── Lot labels ────────────────────────────────────────────────────── */
+.lot-label-group { pointer-events: none; }
+.lot-label-num {
+  font-family: 'Jost', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  fill: #3a4a2e;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  letter-spacing: 0.5px;
+}
+.lot-label-acres {
+  font-family: 'Jost', sans-serif;
+  font-size: 9px;
+  font-weight: 400;
+  fill: #6b7a5a;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+/* ── Roads ─────────────────────────────────────────────────────────── */
+.road-fill {
+  fill: none;
+  stroke: #cac4b4;
+  stroke-width: 35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.road-interior { fill: #cac4b4; stroke: none; pointer-events: none; }
+.road-edge {
+  fill: none;
+  stroke: #b5ad9e;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.road-label {
+  font-family: 'Jost', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  fill: #8a8274;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+/* ── Water ─────────────────────────────────────────────────────────── */
+.stream-tob {
+  fill: none;
+  stroke: #7aabbf;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.stream-buffer {
+  fill: none;
+  stroke: #7aabbf;
+  stroke-width: 1;
+  stroke-dasharray: 6,3;
+  opacity: 0.6;
+}
+
+/* ── Easements ─────────────────────────────────────────────────────── */
+.easement {
+  fill: none;
+  stroke: #e6a800;
+  stroke-width: 1.5;
+  stroke-dasharray: 5,3;
+  opacity: 0.5;
+}
+
+/* ── Plat / survey lines ───────────────────────────────────────────── */
+.lot-boundary {
+  fill: none;
+  stroke: #9a9080;
+  stroke-width: 0.75;
+  pointer-events: none;
+}
+.plat-line {
+  fill: none;
+  stroke: #aaa090;
+  stroke-width: 0.75;
+  stroke-dasharray: 5,4;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* ── Area labels ───────────────────────────────────────────────────── */
+.area-label {
+  font-family: 'Jost', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  fill: #7a8068;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+/* ── Builder overlays ──────────────────────────────────────────────── */
+.builder-dot {
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.builder-dot.show   { opacity: 1; }
+.builder-dot.dimmed { opacity: 0.15; }
+
+/* ── Overlay transitions ───────────────────────────────────────────── */
+#plat-overlay,
+#topo-overlay { transition: opacity 0.35s; }
+
+/* ── Edit mode ─────────────────────────────────────────────────────── */
+#map-svg.edit-mode .lot { cursor: crosshair; }
+#map-svg.edit-mode .lot-label-group {
+  cursor: grab;
+  pointer-events: all;
+}
+#map-svg.edit-mode .lot-label-group.dragging { cursor: grabbing; }
+#map-svg.edit-mode .lot-label-group .lot-label-num,
+#map-svg.edit-mode .lot-label-group .lot-label-acres {
+  paint-order: stroke fill;
+  stroke: rgba(255,255,255,0.7);
+  stroke-width: 4;
+}
+#map-svg.edit-mode .area-label,
+#map-svg.edit-mode .road-label {
+  cursor: grab;
+  pointer-events: all;
+}
+#map-svg.edit-mode .area-label.dragging,
+#map-svg.edit-mode .road-label.dragging { cursor: grabbing; }
+#map-svg.edit-mode *:not(.lot):not(.lot-label-group):not(.lot-label-num):not(.lot-label-acres):not(.area-label):not(.road-label) {
+  cursor: pointer;
+}
+
+/* ── Style-picker mode ─────────────────────────────────────────────── */
+#map-svg.style-picker-mode * { cursor: crosshair !important; pointer-events: all !important; }
+
+/* ── Pick-element highlight ────────────────────────────────────────── */
+.edit-pick-selected.lot {
+  stroke: #00e5ff !important;
+  stroke-width: 3 !important;
+  filter: drop-shadow(0 0 5px rgba(0, 229, 255, 0.7));
+}
+.edit-pick-selected:not(.lot) {
+  outline: 2px solid #00e5ff;
+  outline-offset: 1px;
+}
+
+/* ── Vertex anchors ────────────────────────────────────────────────── */
+.vertex-anchor {
+  fill: #00e5ff;
+  stroke: #006680;
+  stroke-width: 1.5;
+  cursor: move;
+  pointer-events: all;
+}
+.vertex-anchor:hover { fill: #ffffff; stroke: #00aacc; }

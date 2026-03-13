@@ -4,15 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tennyson — Phase One</title>
+<link rel="stylesheet" href="map-styles.css">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Buenard:wght@400;700&family=Jost:wght@300;400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Radley:ital@0;1&family=Jost:wght@300;400;500;600&display=swap');
 
   :root {
     --jwrg-primary: #3a4a2e;
     --jwrg-error: #dc2626;
     --jwrg-radius: 6px;
     --jwrg-font: 'Jost', sans-serif;
-    --jwrg-display: 'Buenard', Georgia, serif;
+    --jwrg-display: 'Radley', serif;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -45,7 +46,7 @@
     margin-bottom: 2px;
   }
   header h1 {
-    font-family: 'Buenard', Georgia, serif;
+    font-family: 'Radley', serif;
     font-weight: 700;
     font-size: 24px;
     letter-spacing: 2px;
@@ -161,95 +162,6 @@
   }
   svg#map-svg:active { cursor: grabbing; }
 
-  .road-fill {
-    fill: none;
-    stroke: #cac4b4;
-    stroke-width: 42;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-  .lot-boundary {
-    fill: none;
-    stroke: #9a9080;
-    stroke-width: 0.75;
-    pointer-events: none;
-  }
-  .plat-line {
-    fill: none;
-    stroke: #aaa090;
-    stroke-width: 0.75;
-    stroke-dasharray: 5,4;
-    opacity: 0.7;
-    pointer-events: none;
-  }
-  .road-edge {
-    fill: none;
-    stroke: #b5ad9e;
-    stroke-width: 1;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-  .stream-tob {
-    fill: none;
-    stroke: #7aabbf;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-  .stream-buffer {
-    fill: none;
-    stroke: #7aabbf;
-    stroke-width: 1;
-    stroke-dasharray: 6,3;
-    opacity: 0.6;
-  }
-  .easement {
-    fill: none;
-    stroke: #e6a800;
-    stroke-width: 1.5;
-    stroke-dasharray: 5,3;
-    opacity: 0.5;
-  }
-  .lot {
-    fill: #ccd9b8;
-    stroke: #8a9e72;
-    stroke-width: 1.5;
-    cursor: pointer;
-    transition: fill 0.15s, stroke-width 0.15s, opacity 0.25s;
-  }
-  .lot:hover {
-    fill: #b8cda0;
-    stroke-width: 2.5;
-    stroke: #6a8a52;
-  }
-  .lot.selected {
-    stroke: #2c3e28;
-    stroke-width: 3;
-    filter: drop-shadow(0 0 6px rgba(44,62,40,0.4));
-  }
-  .lot.available { fill: url(#pat-available); }
-  .lot.sold { fill: url(#pat-sold); }
-  .lot.reserved { fill: url(#pat-reserved); }
-  .lot.dimmed { opacity: 0.2; }
-
-  .lot-label-group { pointer-events: none; }
-  .lot-label-num {
-    font-family: 'Jost', sans-serif;
-    font-size: 16px;
-    font-weight: 600;
-    fill: #3a4a2e;
-    text-anchor: middle;
-    dominant-baseline: middle;
-    letter-spacing: 0.5px;
-  }
-  .lot-label-acres {
-    font-family: 'Jost', sans-serif;
-    font-size: 9px;
-    font-weight: 400;
-    fill: #6b7a5a;
-    text-anchor: middle;
-    dominant-baseline: middle;
-  }
 
   .info-panel {
     width: 260px;
@@ -260,7 +172,7 @@
     flex-shrink: 0;
   }
   .panel-title {
-    font-family: 'Buenard', Georgia, serif;
+    font-family: 'Radley', serif;
     font-size: 18px;
     font-weight: 700;
     color: #3a4a2e;
@@ -368,41 +280,7 @@
     white-space: nowrap;
   }
 
-  .road-interior { fill: #cac4b4; stroke: none; pointer-events: none; }
-  .road-label {
-    font-family: 'Jost', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    fill: #8a8274;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    pointer-events: none;
-  }
-  /* ── Edit mode ──────────────────────────────────────────────────── */
-  #map-svg.edit-mode .lot { cursor: crosshair; }
-  #map-svg.edit-mode .lot-label-group {
-    cursor: grab;
-    pointer-events: all;
-  }
-  #map-svg.edit-mode .lot-label-group.dragging { cursor: grabbing; }
-  #map-svg.edit-mode .lot-label-group .lot-label-num,
-  #map-svg.edit-mode .lot-label-group .lot-label-acres {
-    paint-order: stroke fill;
-    stroke: rgba(255,255,255,0.7);
-    stroke-width: 4;
-  }
-  #map-svg.edit-mode .area-label,
-  #map-svg.edit-mode .road-label {
-    cursor: grab;
-    pointer-events: all;
-  }
-  #map-svg.edit-mode .area-label.dragging,
-  #map-svg.edit-mode .road-label.dragging { cursor: grabbing; }
-  #map-svg.edit-mode *:not(.lot):not(.lot-label-group):not(.lot-label-num):not(.lot-label-acres):not(.area-label):not(.road-label) {
-    cursor: pointer;
-  }
-  /* Style picker mode: eyedropper cursor on everything */
-  #map-svg.style-picker-mode * { cursor: crosshair !important; pointer-events: all !important; }
+  /* ── Edit mode UI buttons (HTML context only) ───────────────────── */
   #pick-elem-btn.active { background: #5a3a8e; border-color: #5a3a8e; color: #fff; }
   #edit-btn.active { background: #3a4a2e; border-color: #3a4a2e; color: #fff; }
 
@@ -457,11 +335,12 @@
   /* CSS editor floating panel */
   #css-editor-panel {
     display: none;
-    position: absolute;
+    position: fixed;
     top: 16px;
     right: 204px;
     width: 340px;
-    max-height: calc(100% - 32px);
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
     background: rgba(255,255,255,0.97);
     border-radius: 8px;
     padding: 12px 14px;
@@ -483,19 +362,52 @@
     font-size: 18px; color: #999; padding: 0; line-height: 1;
   }
   #css-editor-panel .panel-close-btn:hover { color: #333; }
+  /* ── Syntax-highlighted code editor (overlay technique) ─────────── */
+  .code-editor-wrap {
+    position: relative;
+    border: 1px solid #c5bfb2;
+    border-radius: 4px;
+    background: #faf9f6;
+  }
+  .code-editor-wrap:focus-within { border-color: #3a4a2e; background: #fff; }
+  .code-highlight {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    overflow: hidden;
+    pointer-events: none;
+    box-sizing: border-box;
+    color: #333;
+    border-radius: 4px;
+    z-index: 0;
+  }
+  #css-editor-highlight    { padding: 7px; }
+  #elem-style-highlight    { padding: 5px 6px; }
   #css-editor-ta {
     font-family: 'Courier New', monospace;
     font-size: 11px;
-    border: 1px solid #c5bfb2;
-    border-radius: 4px;
     padding: 7px;
-    resize: vertical;
-    color: #333;
+    resize: none;
+    overflow: hidden;
+    color: transparent;
+    caret-color: #333;
+    background: transparent;
+    border: none;
+    outline: none;
     line-height: 1.5;
     min-height: 260px;
     width: 100%;
     box-sizing: border-box;
+    position: relative;
+    z-index: 1;
   }
+  #css-editor-ta::placeholder,
+  .elem-field-ta::placeholder { color: #aaa; }
   #css-editor-panel .panel-actions { display: flex; gap: 5px; }
   #css-editor-panel .panel-actions .edit-tool-btn { flex: 1; margin-top: 0; }
 
@@ -554,20 +466,80 @@
     flex: 1;
     font-family: 'Courier New', monospace;
     font-size: 11px;
-    border: 1px solid #c5bfb2;
-    border-radius: 4px;
     padding: 5px 6px;
-    resize: vertical;
+    resize: none;
+    overflow: hidden;
     min-height: 56px;
-    color: #333;
+    color: transparent;
+    caret-color: #333;
     line-height: 1.5;
-    background: #faf9f6;
+    background: transparent;
+    border: none;
+    outline: none;
     box-sizing: border-box;
     min-width: 0;
+    position: relative;
+    z-index: 1;
+    width: 100%;
   }
-  .elem-field-ta:focus { outline: none; border-color: #3a4a2e; background: #fff; }
   #elem-style-popover .panel-actions { display: flex; gap: 5px; }
   #elem-style-popover .panel-actions .edit-tool-btn { flex: 1; margin-top: 0; }
+
+  /* ── Per-class CSS editors in style popover ─────────────────────── */
+  #elem-cls-editors { display: flex; flex-direction: column; gap: 5px; }
+  .cls-editor-section { display: flex; flex-direction: column; gap: 2px; }
+  .cls-editor-header {
+    font-size: 10px; font-weight: 600; color: #5a3e8a; font-family: monospace;
+    padding-left: 2px; letter-spacing: 0;
+  }
+  .cls-editor-section .code-editor-wrap { min-width: 0; }
+
+  /* ── Draggable panel headers ────────────────────────────────────── */
+  #css-editor-panel .panel-header,
+  #elem-style-popover .popover-header {
+    cursor: grab;
+    user-select: none;
+  }
+  #css-editor-panel .panel-header:active,
+  #elem-style-popover .popover-header:active { cursor: grabbing; }
+
+  /* ── CSS syntax token colors ─────────────────────────────────────
+     Rules here must NOT change font-size, font-weight, font-style, padding,
+     or letter-spacing — any metric change mis-aligns the highlight overlay
+     with the transparent textarea above it, breaking cursor detection.    */
+  .css-tok-selector { color: #5a3e8a; }
+  .css-tok-prop     { color: #0066aa; }
+  .css-tok-punct    { color: #777; }
+  .css-tok-comment  { color: #999; }
+  /* Color chip: background + border-radius only — zero layout impact */
+  .css-color-chip {
+    border-radius: 3px;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.18);
+  }
+  /* In the read-only computed-style display (plain <div>, no overlay),
+     decorative weight/style changes are fine. */
+  .elem-computed-display .css-tok-selector { font-weight: 600; }
+  .elem-computed-display .css-tok-comment  { font-style: italic; }
+  .elem-computed-display .css-color-chip   { padding: 1px 5px; font-size: 10px; font-weight: 600; }
+
+  /* ── Element computed style display ────────────────────────────── */
+  .elem-computed-display {
+    flex: 1;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    line-height: 1.5;
+    color: #666;
+    background: #f4f2ee;
+    border: 1px solid #d8d2c8;
+    border-radius: 4px;
+    padding: 4px 6px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    min-width: 0;
+    max-height: 80px;
+    overflow-y: auto;
+  }
+  .elem-computed-display:empty { display: none; }
 
   /* ── Color picker ──────────────────────────────────────────────── */
   #color-picker-popup {
@@ -612,16 +584,185 @@
   /* Highlight color swatches in textareas (visual hint) */
   .cp-has-color { cursor: pointer; }
 
-  .area-label {
-    font-family: 'Jost', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 2px;
-    fill: #7a8068;
-    text-anchor: middle;
-    pointer-events: none;
-  }
   .export-note { font-size: 11px; color: #bbb; margin-top: 20px; line-height: 1.5; }
+
+  /* ── Elements panel ─────────────────────────────────────────────── */
+  #elem-panel {
+    display: none;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    width: 280px;
+    height: 420px;
+    min-width: 180px;
+    min-height: 160px;
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 32px);
+    overflow: hidden;
+    background: rgba(255,255,255,0.97);
+    border-radius: 8px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    z-index: 25;
+    flex-direction: column;
+  }
+  .ep-resize-e, .ep-resize-s, .ep-resize-se {
+    position: absolute;
+    z-index: 1;
+  }
+  .ep-resize-e {
+    top: 8px; right: 0; bottom: 8px; width: 5px;
+    cursor: ew-resize;
+  }
+  .ep-resize-s {
+    bottom: 0; left: 8px; right: 8px; height: 5px;
+    cursor: ns-resize;
+  }
+  .ep-resize-se {
+    right: 0; bottom: 0; width: 12px; height: 12px;
+    cursor: se-resize;
+  }
+  .ep-resize-se::after {
+    content: '';
+    position: absolute;
+    right: 3px; bottom: 3px;
+    width: 6px; height: 6px;
+    border-right: 2px solid #bbb;
+    border-bottom: 2px solid #bbb;
+    border-radius: 1px;
+  }
+  #elem-panel.open { display: flex; }
+  #elem-panel .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px 8px;
+    border-bottom: 1px solid #e8e4dc;
+    cursor: grab;
+    user-select: none;
+    flex-shrink: 0;
+  }
+  #elem-panel .panel-header:active { cursor: grabbing; }
+  #elem-panel .panel-close-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 18px; color: #999; padding: 0; line-height: 1;
+  }
+  #elem-panel .panel-close-btn:hover { color: #333; }
+  #elem-panel-list {
+    overflow-y: auto;
+    flex: 1;
+    padding: 3px 0;
+  }
+  .ep-row {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    padding: 2px 4px 2px 0;
+    cursor: default;
+    border-radius: 3px;
+    min-height: 22px;
+  }
+  .ep-row:hover { background: #f0f4e8; }
+  .ep-row.ep-selected { background: #e0edcc; }
+  .ep-row.ep-hidden-row { opacity: 0.45; }
+  .ep-toggle {
+    width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-size: 8px;
+    color: #888;
+    border-radius: 2px;
+    user-select: none;
+    border: none;
+    background: none;
+    padding: 0;
+  }
+  .ep-toggle:hover { background: #ddd; }
+  .ep-cb {
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
+    accent-color: #5a3a8e;
+    cursor: pointer;
+    margin: 0 1px;
+  }
+  .ep-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px;
+    color: #333;
+    cursor: pointer;
+    padding: 1px 3px;
+    border-radius: 2px;
+  }
+  .ep-label:hover { color: #1a3010; }
+  .ep-tag { color: #999; font-size: 10px; }
+  .ep-eid { color: #5a3e8a; font-weight: 600; }
+  .ep-cls { color: #0066aa; }
+  .ep-vis {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    border-radius: 3px;
+    font-size: 12px;
+    color: #bbb;
+    border: none;
+    background: none;
+    padding: 0;
+    line-height: 1;
+  }
+  .ep-vis:hover { background: #e8e4dc; color: #333; }
+  .ep-actions {
+    display: flex;
+    gap: 0;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+  .ep-row:hover .ep-actions { opacity: 1; }
+  .ep-act-btn {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 11px;
+    color: #999;
+    border: none;
+    background: none;
+    padding: 0;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .ep-act-btn:hover { background: #e8e4dc; color: #333; }
+  .ep-act-btn.ep-del:hover { background: #f0d0d0; color: #9a1010; }
+  #elem-panel-toolbar {
+    display: flex;
+    gap: 4px;
+    padding: 6px 10px;
+    border-top: 1px solid #e8e4dc;
+    flex-shrink: 0;
+  }
+  #elem-panel-toolbar .edit-tool-btn {
+    flex: 1;
+    margin-top: 0;
+    font-size: 10px;
+    padding: 4px 4px;
+  }
 
   /* Topo overlay */
   #topo-controls {
@@ -669,15 +810,6 @@
   #plat-controls .val { min-width: 36px; text-align: right; color: #555; }
   .btn-overlay.active { background: #3a4a2e; color: #fff; border-color: #2a3a1e; }
 
-  /* Builder lot strokes */
-  .builder-dot {
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-  .builder-dot.show { opacity: 1; }
-  .builder-dot.dimmed { opacity: 0.15; }
-  #plat-overlay, #topo-overlay { transition: opacity 0.35s; }
 
   #builder-legend {
     display: flex;
@@ -762,7 +894,7 @@
     border-top: 1px solid #e0ddd6;
   }
   .info-panel .form-section-title {
-    font-family: 'Buenard', Georgia, serif;
+    font-family: 'Radley', serif;
     font-size: 15px;
     font-weight: 700;
     color: #3a4a2e;
@@ -960,7 +1092,7 @@
     box-shadow: 0 8px 40px rgba(0,0,0,0.28);
   }
   .exp-title {
-    font-family: 'Buenard', Georgia, serif;
+    font-family: 'Radley', serif;
     font-size: 17px;
     font-weight: 700;
     color: #3a4a2e;
@@ -1094,6 +1226,7 @@
       <div class="legend-title">Overlays</div>
       <label class="legend-overlay-item"><input type="checkbox" id="cb-plat" onchange="togglePlatOverlay()"> Plat</label>
       <label class="legend-overlay-item"><input type="checkbox" id="cb-topo" onchange="toggleTopoOverlay()"> Topo</label>
+      <label class="legend-overlay-item"><input type="checkbox" id="cb-easements" onchange="toggleEasementOverlay()"> Easements</label>
       <label class="legend-overlay-item"><input type="checkbox" id="cb-builders" onchange="toggleBuilderView()"> Builders</label>
       <div id="builder-list"></div>
     </div>
@@ -1111,8 +1244,10 @@
       <div class="edit-hint"><b>Drag</b> labels to reposition.<br><b>Click</b> a lot to cycle status.</div>
       <button class="edit-tool-btn" id="pick-elem-btn" onclick="toggleStylePicker()">&#9654; Pick Element Style</button>
       <button class="edit-tool-btn" onclick="openCSSEditor()">Edit Map CSS</button>
+      <button class="edit-tool-btn" onclick="openElemPanel()">&#9776; Elements</button>
       <button class="edit-tool-btn" onclick="resetAllLabels()">Reset Label Positions</button>
       <button class="edit-tool-btn primary" onclick="copyEditChanges()">Copy Changes</button>
+      <button class="edit-tool-btn primary" id="save-files-btn" onclick="saveToFiles()" style="display:none">Save to Files</button>
     </div>
 
     <!-- CSS editor floating panel -->
@@ -1121,7 +1256,10 @@
         <div class="edit-tools-title" style="margin:0">Map CSS</div>
         <button class="panel-close-btn" onclick="closeCSSEditor()">&times;</button>
       </div>
-      <textarea id="css-editor-ta" spellcheck="false"></textarea>
+      <div class="code-editor-wrap">
+        <div class="code-highlight" id="css-editor-highlight"></div>
+        <textarea id="css-editor-ta" spellcheck="false"></textarea>
+      </div>
       <div class="panel-actions">
         <button class="edit-tool-btn" onclick="resetCSSOverride()">Reset</button>
         <button class="edit-tool-btn" onclick="copyCSSOverride()">Copy</button>
@@ -1143,9 +1281,13 @@
         <label class="elem-field-lbl">class</label>
         <input id="elem-style-cls" class="elem-field-input" type="text" spellcheck="false" placeholder="none">
       </div>
+      <div id="elem-cls-editors"></div>
       <div class="elem-field-row elem-field-row--top">
         <label class="elem-field-lbl">style</label>
-        <textarea id="elem-style-ta" class="elem-field-ta" spellcheck="false" placeholder="fill: red; stroke-width: 2;"></textarea>
+        <div class="code-editor-wrap" style="flex:1;min-width:0">
+          <div class="code-highlight" id="elem-style-highlight"></div>
+          <textarea id="elem-style-ta" class="elem-field-ta" spellcheck="false" placeholder="fill: red; stroke-width: 2;"></textarea>
+        </div>
       </div>
       <div class="panel-actions">
         <button class="edit-tool-btn" onclick="closeElemStylePopover()">Cancel</button>
@@ -1173,6 +1315,23 @@
         <button class="edit-tool-btn" onclick="closeColorPicker()">Cancel</button>
         <button class="edit-tool-btn primary" onclick="applyColorPicker()">Apply</button>
       </div>
+    </div>
+
+    <!-- Elements panel -->
+    <div id="elem-panel">
+      <div class="panel-header" id="elem-panel-header">
+        <div class="edit-tools-title" style="margin:0">Elements</div>
+        <button class="panel-close-btn" onclick="closeElemPanel()">&times;</button>
+      </div>
+      <div id="elem-panel-list"></div>
+      <div id="elem-panel-toolbar">
+        <button class="edit-tool-btn" onclick="groupCheckedElems()" title="Wrap checked elements in a &lt;g&gt;">Group</button>
+        <button class="edit-tool-btn" onclick="ungroupSelectedElem()" title="Dissolve selected &lt;g&gt; into its parent">Ungroup</button>
+        <button class="edit-tool-btn" onclick="refreshElemPanel()" title="Refresh element list">&#8635; Refresh</button>
+      </div>
+      <div class="ep-resize-e"  data-ep-resize="e"></div>
+      <div class="ep-resize-s"  data-ep-resize="s"></div>
+      <div class="ep-resize-se" data-ep-resize="se"></div>
     </div>
 
     <div class="jwrg-watermark">
@@ -1282,8 +1441,9 @@ let selectedId = null, currentFilter = 'all';
 let scale = 1.2009865115336706, panX = -99.12704415773533, panY = -109.15939821558845, isPanning = false, startPX, startPY;
 let _zoomAnimating = false, _zoomAnimStart = null;
 let _zoomFrom = {}, _zoomTo = {};
-let editMode = false, stylePickerMode = false, labelOffsets = {}, _lastRows = [];
+let editMode = false, stylePickerMode = false, labelOffsets = {}, _lastRows = [], elemOverrides = {}, _classOverrides = {};
 let _drag = null;
+let _vertexDrag = null, _vertexLayer = null, _vertexEditTarget = null, _vertexDblClick = null;
 const ZOOM_ANIM_MS = 260;
 
 function zoomTo(newScale, newPanX, newPanY) {
@@ -1390,7 +1550,8 @@ function populateLabels(rows) {
       g = document.createElementNS(ns, 'g');
       g.classList.add('lot-label-group');
       g.setAttribute('data-lot-id', row.lot_id);
-      g.setAttribute('transform', `translate(${cx},${cy})`);
+      const savedOff = labelOffsets[row.lot_id];
+      g.setAttribute('transform', savedOff ? `translate(${savedOff.cx},${savedOff.cy})` : `translate(${cx},${cy})`);
       const numEl = document.createElementNS(ns, 'text');
       numEl.classList.add('lot-label-num');
       numEl.setAttribute('x', '0');
@@ -1432,6 +1593,7 @@ async function loadResources() {
   container.innerHTML = svgText;
   _lastRows = parseCSV(csvText);
   rebuildFromCSV(_lastRows);
+  _restoreSavedState();     // load saved labelOffsets before populateLabels uses them
   populateLabels(_lastRows);
   rebuildBuilderLegend();
   LOT_DATA.forEach(lot => {
@@ -1457,8 +1619,8 @@ function init() {
   initPanZoom();
   applyTransform();
   updateStats();
-  // Show topo as background element at low opacity
-  const topoEl = document.getElementById('topo-overlay');
+  // Ensure background topo is visible
+  const topoEl = document.getElementById('topo-bg');
   if (topoEl) topoEl.style.display = 'block';
 }
 
@@ -1643,16 +1805,19 @@ function resetView() {
     document.getElementById('plat-controls').style.display = 'none';
     document.querySelector('.labels').style.display = '';
   }
-  // Return topo overlay to background
+  // Hide topo overlay
   if (topoFg) {
     topoFg = false;
     document.getElementById('cb-topo').checked = false;
-    const img = document.getElementById('topo-overlay');
-    const svg = document.getElementById('map-svg');
-    svg.insertBefore(img, svg.children[2]);
-    img.style.display = 'block';
-    img.style.opacity = '0.1';
+    document.getElementById('topo-overlay').style.opacity = '0';
     document.getElementById('topo-controls').style.display = 'none';
+  }
+  // Hide easement overlay
+  const easeCb = document.getElementById('cb-easements');
+  if (easeCb && easeCb.checked) {
+    easeCb.checked = false;
+    const g = document.getElementById('easement-overlay');
+    if (g) g.style.display = 'none';
   }
 }
 
@@ -1771,6 +1936,9 @@ function toggleEditMode() {
   if (!editMode) {
     closeCSSEditor();
     closeElemStylePopover();
+    closeElemPanel();
+    clearVertexAnchors();
+    _epSetSelected(null);
     if (stylePickerMode) toggleStylePicker();
   }
 }
@@ -1796,7 +1964,21 @@ function initEditHandlers() {
     // Style picker mode and shift+click → element style editor (handled on click)
     if (stylePickerMode || e.shiftKey) return;
 
-    // Find draggable target
+    // Panel-selected element drag
+    if (_epSelected) {
+      const selEl = _epGetElem(_epSelected);
+      if (selEl && (e.target === selEl || selEl.contains(e.target))) {
+        e.stopPropagation();
+        e.preventDefault();
+        const sp = svgPoint(e);
+        _drag = { g: selEl, startSvgX: sp.x, startSvgY: sp.y,
+                  origTransform: selEl.getAttribute('transform') || '', isElemDrag: true };
+        selEl.classList.add('dragging');
+        return;
+      }
+    }
+
+    // Find draggable label target
     const g = e.target.closest('.lot-label-group');
     const areaLbl = !g && e.target.closest('.area-label');
     const roadLbl = !g && !areaLbl && e.target.closest('.road-label');
@@ -1813,15 +1995,39 @@ function initEditHandlers() {
   });
 
   window.addEventListener('mousemove', e => {
+    if (_vertexDrag) {
+      const sp = svgPoint(e);
+      const newX = _vertexDrag.origX + (sp.x - _vertexDrag.startSvg.x);
+      const newY = _vertexDrag.origY + (sp.y - _vertexDrag.startSvg.y);
+      _vertexDrag.circle.setAttribute('cx', newX);
+      _vertexDrag.circle.setAttribute('cy', newY);
+      const pts = _parsePolyPoints(_vertexDrag.poly);
+      pts[_vertexDrag.idx] = [newX, newY];
+      _vertexDrag.poly.setAttribute('points', pts.map(([x, y]) => `${x} ${y}`).join(' '));
+      return;
+    }
     if (!_drag) return;
     const sp = svgPoint(e);
-    const newX = _drag.origCx + (sp.x - _drag.startSvgX);
-    const newY = _drag.origCy + (sp.y - _drag.startSvgY);
-    _drag.g.setAttribute('transform', `translate(${newX},${newY})`);
+    if (_drag.isElemDrag) {
+      const dx = sp.x - _drag.startSvgX;
+      const dy = sp.y - _drag.startSvgY;
+      const base = _drag.origTransform;
+      _drag.g.setAttribute('transform', `translate(${dx.toFixed(2)},${dy.toFixed(2)})${base ? ' ' + base : ''}`);
+    } else {
+      const newX = _drag.origCx + (sp.x - _drag.startSvgX);
+      const newY = _drag.origCy + (sp.y - _drag.startSvgY);
+      _drag.g.setAttribute('transform', `translate(${newX},${newY})`);
+    }
   });
 
   window.addEventListener('mouseup', () => {
+    if (_vertexDrag) { _vertexDrag = null; return; }
     if (!_drag) return;
+    if (_drag.isElemDrag) {
+      _drag.g.classList.remove('dragging');
+      _drag = null;
+      return;
+    }
     const t = _drag.g.getAttribute('transform') || '';
     const [cx, cy] = parseTranslate(t);
     if (_drag.key) labelOffsets[_drag.key] = { cx, cy };
@@ -1836,7 +2042,8 @@ function initEditHandlers() {
     e.stopPropagation();
     // Lots handled in onLotClick (shift+click path)
     if (!stylePickerMode && e.target.classList.contains('lot')) return;
-    openElemStylePopover(e.target, e.clientX, e.clientY);
+    const picked = stylePickerMode ? _epPickTarget(e.target) : e.target;
+    openElemStylePopover(picked, e.clientX, e.clientY);
   });
 }
 
@@ -1851,6 +2058,102 @@ function cycleStatus(id) {
   applyFilter(currentFilter);
 }
 
+// ── Vertex anchor editing ──────────────────────────────────────────
+function _parsePolyPoints(poly) {
+  const nums = poly.getAttribute('points').trim().split(/[\s,]+/).map(Number);
+  const pts = [];
+  for (let i = 0; i + 1 < nums.length; i += 2) pts.push([nums[i], nums[i + 1]]);
+  return pts;
+}
+
+function clearVertexAnchors() {
+  if (_vertexLayer) { _vertexLayer.remove(); _vertexLayer = null; }
+  if (_vertexEditTarget) {
+    if (_vertexDblClick) {
+      _vertexEditTarget.removeEventListener('dblclick', _vertexDblClick);
+      _vertexDblClick = null;
+    }
+    // Keep highlight if element is still the active panel selection
+    if (_epElemKey(_vertexEditTarget) !== _epSelected)
+      _vertexEditTarget.classList.remove('edit-pick-selected');
+    _vertexEditTarget = null;
+  }
+  _vertexDrag = null;
+}
+
+function attachVertexAnchors(el) {
+  clearVertexAnchors();
+  el.classList.add('edit-pick-selected');
+  _vertexEditTarget = el;
+  const tag = el.tagName.toLowerCase();
+  if (tag !== 'polygon' && tag !== 'polyline') return;
+  const svg = document.getElementById('map-svg');
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  g.setAttribute('id', 'vertex-anchor-layer');
+  svg.appendChild(g);
+  _vertexLayer = g;
+  const minPts = tag === 'polygon' ? 3 : 2;
+  const rcState = { circle: null, time: 0 };
+  _parsePolyPoints(el).forEach(([x, y], idx) => {
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('cx', x);
+    c.setAttribute('cy', y);
+    c.setAttribute('r', 6);
+    c.setAttribute('class', 'vertex-anchor');
+    c.dataset.idx = idx;
+    g.appendChild(c);
+    c.addEventListener('mousedown', e => {
+      e.stopPropagation();
+      e.preventDefault();
+      const sp = svgPoint(e);
+      _vertexDrag = { circle: c, poly: el, idx, startSvg: sp, origX: x, origY: y };
+    });
+    c.addEventListener('contextmenu', e => {
+      e.stopPropagation();
+      e.preventDefault();
+      const now = Date.now();
+      if (rcState.circle === c && now - rcState.time < 500) {
+        const pts = _parsePolyPoints(el);
+        if (pts.length <= minPts) return;
+        pts.splice(idx, 1);
+        el.setAttribute('points', pts.map(([px, py]) => `${px} ${py}`).join(' '));
+        attachVertexAnchors(el);
+      } else {
+        rcState.circle = c;
+        rcState.time = now;
+      }
+    });
+  });
+
+  // Double-click on the element edge to insert a new vertex at that point
+  _vertexDblClick = e => {
+    e.stopPropagation();
+    e.preventDefault();
+    const sp = svgPoint(e);
+    const p = [sp.x, sp.y];
+    const pts = _parsePolyPoints(el);
+    const numSegs = tag === 'polygon' ? pts.length : pts.length - 1;
+    let bestDist = Infinity, bestSeg = 0;
+    for (let i = 0; i < numSegs; i++) {
+      const p1 = pts[i], p2 = pts[(i + 1) % pts.length];
+      const dx = p2[0] - p1[0], dy = p2[1] - p1[1];
+      const lenSq = dx*dx + dy*dy;
+      const t = lenSq > 0 ? Math.max(0, Math.min(1, ((p[0]-p1[0])*dx + (p[1]-p1[1])*dy) / lenSq)) : 0;
+      const dist = Math.hypot(p[0] - (p1[0]+t*dx), p[1] - (p1[1]+t*dy));
+      if (dist < bestDist) { bestDist = dist; bestSeg = i; }
+    }
+    const p1 = pts[bestSeg], p2 = pts[(bestSeg + 1) % pts.length];
+    const dx = p2[0] - p1[0], dy = p2[1] - p1[1];
+    const lenSq = dx*dx + dy*dy;
+    const t = lenSq > 0 ? Math.max(0, Math.min(1, ((p[0]-p1[0])*dx + (p[1]-p1[1])*dy) / lenSq)) : 0;
+    pts.splice(bestSeg + 1, 0, [p1[0]+t*dx, p1[1]+t*dy]);
+    el.setAttribute('points', pts.map(([px, py]) => `${+px.toFixed(1)} ${+py.toFixed(1)}`).join(' '));
+    attachVertexAnchors(el);
+    closeElemStylePopover();
+  };
+  el.addEventListener('dblclick', _vertexDblClick);
+}
+
 // Original transforms for road/area labels, captured at load time
 let _origLabelTransforms = {};
 
@@ -1863,6 +2166,7 @@ function captureOrigLabelTransforms() {
 
 function resetAllLabels() {
   labelOffsets = {};
+  localStorage.removeItem('tennyson-label-offsets');
   // Reset lot labels
   const labelsG = document.querySelector('#map-svg .labels');
   if (labelsG) labelsG.innerHTML = '';
@@ -1874,13 +2178,23 @@ function resetAllLabels() {
   });
 }
 
-function copyEditChanges() {
+function csvEscape(v) {
+  const s = String(v ?? '');
+  return (s.includes(',') || s.includes('"') || s.includes('\n'))
+    ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+function buildCSV() {
   const cols = ['lot_id','lot_number','acres','status','builder_name','builder_short','builder_contact','builder_address','builder_phone','builder_email','builder_color','builder_border'];
   const lines = [cols.join(',')];
   _lastRows.forEach(row => {
-    lines.push(cols.map(c => c === 'status' ? (statuses[row.lot_id] || row.status) : (row[c] || '')).join(','));
+    lines.push(cols.map(c => csvEscape(c === 'status' ? (statuses[row.lot_id] || row.status) : (row[c] || ''))).join(','));
   });
-  let text = lines.join('\n');
+  return lines.join('\n');
+}
+
+function copyEditChanges() {
+  let text = buildCSV();
   const allOffsets = { ...labelOffsets };
   // Capture current road/area label transforms
   ['label-open-space','label-rec-area','label-lawrence-road','label-tennyson-court'].forEach(id => {
@@ -1897,41 +2211,153 @@ function copyEditChanges() {
   if (cssOverride && cssOverride.textContent.trim()) {
     text += '\n\n/* Map CSS override:\n' + cssOverride.textContent.trim() + '\n*/';
   }
-  const btn = document.querySelector('#edit-tools .edit-tool-btn.primary');
+  const btn = document.querySelector('#edit-tools .edit-tool-btn.primary:not(#save-files-btn)');
   navigator.clipboard.writeText(text).then(() => {
     btn.textContent = 'Copied!';
     setTimeout(() => btn.textContent = 'Copy Changes', 2000);
   }).catch(() => { window.prompt('Copy these changes:', text); });
 }
 
+function _persistLabelState() {
+  // Collect all current label positions into one object keyed by id/lot_id
+  const state = { ...labelOffsets };
+  ['label-open-space','label-rec-area','label-lawrence-road','label-tennyson-court'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      const t = el.getAttribute('transform') || '';
+      if (t && t !== (_origLabelTransforms[id] || '')) state[id] = t;
+    }
+  });
+  if (Object.keys(state).length) {
+    localStorage.setItem('tennyson-label-offsets', JSON.stringify(state));
+  } else {
+    localStorage.removeItem('tennyson-label-offsets');
+  }
+  // Persist CSS override
+  const cssOverride = document.getElementById('map-style-override');
+  const css = cssOverride ? cssOverride.textContent.trim() : '';
+  if (css) localStorage.setItem('tennyson-css-override', css);
+  else localStorage.removeItem('tennyson-css-override');
+  // Persist element attribute overrides
+  if (Object.keys(elemOverrides).length) {
+    localStorage.setItem('tennyson-elem-overrides', JSON.stringify(elemOverrides));
+  } else {
+    localStorage.removeItem('tennyson-elem-overrides');
+  }
+}
+
+function _restoreSavedState() {
+  // Restore lot label offsets and apply road/area label transforms
+  try {
+    const raw = localStorage.getItem('tennyson-label-offsets');
+    if (raw) {
+      const saved = JSON.parse(raw);
+      for (const [key, val] of Object.entries(saved)) {
+        if (val && typeof val === 'object' && val.cx !== undefined) {
+          // Lot label offset — also update the existing DOM element if present
+          labelOffsets[key] = val;
+          const g = document.querySelector(`.lot-label-group[data-lot-id="${key}"]`);
+          if (g) g.setAttribute('transform', `translate(${val.cx},${val.cy})`);
+        } else if (typeof val === 'string') {
+          // Road/area label transform
+          const el = document.getElementById(key);
+          if (el) el.setAttribute('transform', val);
+        }
+      }
+    }
+  } catch(e) { console.warn('Failed to restore label state:', e); }
+  // Restore CSS override — create the style element if it doesn't exist yet
+  try {
+    const savedCSS = localStorage.getItem('tennyson-css-override');
+    if (savedCSS) {
+      let override = document.getElementById('map-style-override');
+      if (!override) {
+        override = document.createElement('style');
+        override.id = 'map-style-override';
+        document.head.appendChild(override);
+      }
+      override.textContent = savedCSS;
+    }
+  } catch(e) {}
+  // Restore element attribute overrides
+  try {
+    const raw = localStorage.getItem('tennyson-elem-overrides');
+    if (raw) {
+      const saved = JSON.parse(raw);
+      elemOverrides = saved;
+      const svgRoot = document.getElementById('map-svg');
+      for (const [key, attrs] of Object.entries(saved)) {
+        const el = _findByElemKey(key, svgRoot);
+        if (!el) continue;
+        if (attrs.id !== undefined) {
+          if (attrs.id) el.id = attrs.id; else el.removeAttribute('id');
+        }
+        if (attrs.cls !== undefined) {
+          const safeClass = (attrs.cls || '').split(/\s+/).filter(c => c && c !== 'edit-pick-selected').join(' ');
+          if (safeClass) el.setAttribute('class', safeClass); else el.removeAttribute('class');
+        }
+        if (attrs.style !== undefined) {
+          if (attrs.style) el.setAttribute('style', attrs.style); else el.removeAttribute('style');
+        }
+      }
+    }
+  } catch(e) { console.warn('Failed to restore element overrides:', e); }
+}
+
+async function saveToFiles() {
+  const btn = document.getElementById('save-files-btn');
+  const origText = btn.textContent;
+  btn.textContent = 'Saving…';
+  btn.disabled = true;
+  // Always persist label positions and CSS to localStorage
+  _persistLabelState();
+
+  // Serialize live SVG DOM back to text, stripping transient UI classes
+  const svgEl = document.getElementById('map-svg');
+  svgEl.querySelectorAll('.edit-pick-selected').forEach(el => el.classList.remove('edit-pick-selected'));
+  const svgContent = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+    new XMLSerializer().serializeToString(svgEl);
+
+  try {
+    const [csvResp, svgResp] = await Promise.all([
+      fetch('/save', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({filename: 'tennyson-lots.csv', content: buildCSV()})
+      }),
+      fetch('/save', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({filename: 'tennyson-map.svg', content: svgContent})
+      })
+    ]);
+    const [csvData, svgData] = await Promise.all([csvResp.json(), svgResp.json()]);
+    if (csvData.ok && svgData.ok) {
+      btn.textContent = 'Saved ✓';
+      setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2000);
+    } else {
+      btn.textContent = 'Error!';
+      if (!csvData.ok) console.error('CSV save failed:', csvData.error);
+      if (!svgData.ok) console.error('SVG save failed:', svgData.error);
+      setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 3000);
+    }
+  } catch (e) {
+    // Dev server not running — localStorage save still succeeded for label state
+    btn.textContent = 'Saved (local)';
+    console.warn('Dev server not available; files not saved to disk:', e);
+    setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2500);
+  }
+}
+
 // ── CSS editor ────────────────────────────────────────────────────
-const MAP_CSS_DEFAULT = `/* Lots */
-.lot { fill: #ccd9b8; stroke: #8a9e72; stroke-width: 1.5; }
-.lot.available { fill: url(#pat-available); }
-.lot.sold { fill: url(#pat-sold); }
-.lot.reserved { fill: url(#pat-reserved); }
-
-/* Roads */
-.road-fill { fill: none; stroke: #cac4b4; stroke-width: 42; stroke-linecap: round; stroke-linejoin: round; }
-.road-interior { fill: #cac4b4; }
-.road-edge { fill: none; stroke: #b5ad9e; stroke-width: 1; }
-.road-label { fill: #8a8274; font-size: 13px; letter-spacing: 3px; }
-
-/* Water & easements */
-.stream-tob { fill: none; stroke: #7aabbf; stroke-width: 2; }
-.stream-buffer { fill: none; stroke: #7aabbf; stroke-width: 1; stroke-dasharray: 6,3; opacity: 0.6; }
-.easement { fill: none; stroke: #e6a800; stroke-width: 1.5; stroke-dasharray: 5,3; opacity: 0.5; }
-
-/* Plat/survey lines */
-.lot-boundary { fill: none; stroke: #9a9080; stroke-width: 0.75; }
-.plat-line { fill: none; stroke: #aaa090; stroke-width: 0.75; stroke-dasharray: 5,4; opacity: 0.7; }
-
-/* Lot labels */
-.lot-label-num { fill: #3a4a2e; font-size: 16px; font-weight: 600; }
-.lot-label-acres { fill: #6b7a5a; font-size: 9px; }
-
-/* Area labels */
-.area-label { fill: #7a8068; font-size: 13px; font-weight: 500; letter-spacing: 2px; }`;
+// Base map styles live in map-styles.css.
+// The CSS editor injects overrides on top — add rules here to override specifics.
+const MAP_CSS_DEFAULT = `/* Override map-styles.css rules here.
+ * Examples:
+ * .lot { fill: #d4e8c0; }
+ * .area-label { font-size: 15px; }
+ * .road-label { letter-spacing: 4px; }
+ */`;
 
 function openCSSEditor() {
   const panel = document.getElementById('css-editor-panel');
@@ -1939,6 +2365,7 @@ function openCSSEditor() {
   const override = document.getElementById('map-style-override');
   ta.value = (override && override.textContent.trim()) ? override.textContent : MAP_CSS_DEFAULT;
   panel.classList.add('open');
+  updateCodeHighlight('css-editor-ta', 'css-editor-highlight');
 }
 
 function closeCSSEditor() {
@@ -1957,7 +2384,10 @@ function applyCSSOverride() {
 
 function resetCSSOverride() {
   document.getElementById('css-editor-ta').value = MAP_CSS_DEFAULT;
-  applyCSSOverride();
+  updateCodeHighlight('css-editor-ta', 'css-editor-highlight');
+  const style = document.getElementById('map-style-override');
+  if (style) style.textContent = '';
+  localStorage.removeItem('tennyson-css-override');
 }
 
 function copyCSSOverride() {
@@ -1969,8 +2399,183 @@ function copyCSSOverride() {
   }).catch(() => { window.prompt('Copy CSS:', text); });
 }
 
+// ── CSS rich preview renderer ─────────────────────────────────────
+function _hexLuminance(hex) {
+  const h = hex.replace('#', '');
+  let r, g, b;
+  if (h.length === 3 || h.length === 4) {
+    r = parseInt(h[0] + h[0], 16) / 255;
+    g = parseInt(h[1] + h[1], 16) / 255;
+    b = parseInt(h[2] + h[2], 16) / 255;
+  } else {
+    r = parseInt(h.slice(0, 2), 16) / 255;
+    g = parseInt(h.slice(2, 4), 16) / 255;
+    b = parseInt(h.slice(4, 6), 16) / 255;
+  }
+  [r, g, b] = [r, g, b].map(c => c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function _applyColorChips(escapedText) {
+  // Hex color bubbles
+  let out = escapedText.replace(/#([0-9a-fA-F]{3,8})(?=[^0-9a-fA-F]|$)/g, (match, hex) => {
+    if (![3, 4, 6, 8].includes(hex.length)) return match;
+    const lum = _hexLuminance('#' + hex);
+    const fg = lum > 0.35 ? '#111' : '#fff';
+    return `<span class="css-color-chip" style="background:#${hex};color:${fg}">${match}</span>`;
+  });
+  // rgb/rgba color bubbles
+  out = out.replace(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)([^)]*)\)/g, (match, r, g, b) => {
+    const lum = 0.2126 * r / 255 + 0.7152 * g / 255 + 0.0722 * b / 255;
+    const fg = lum > 0.35 ? '#111' : '#fff';
+    return `<span class="css-color-chip" style="background:rgb(${r},${g},${b});color:${fg}">${match}</span>`;
+  });
+  return out;
+}
+
+function renderCSSFormatted(cssText) {
+  const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  let html = '';
+  let remaining = cssText;
+
+  while (remaining.length > 0) {
+    const cs = remaining.indexOf('/*');
+    if (cs === -1) { html += _renderCSSLines(esc(remaining)); break; }
+    if (cs > 0) html += _renderCSSLines(esc(remaining.slice(0, cs)));
+    const ce = remaining.indexOf('*/', cs + 2);
+    if (ce === -1) {
+      html += `<span class="css-tok-comment">${esc(remaining.slice(cs))}</span>`;
+      break;
+    }
+    html += `<span class="css-tok-comment">${esc(remaining.slice(cs, ce + 2))}</span>`;
+    remaining = remaining.slice(ce + 2);
+  }
+  return html;
+}
+
+// Render a semicolon-separated property list (the body of an inline rule block)
+function _renderPropList(escapedBody) {
+  // Split on semicolons, colorize each "prop: value" fragment
+  return escapedBody.split(';').map((frag, i, arr) => {
+    const isLast = i === arr.length - 1;
+    const pm = frag.match(/^(\s*)([-\w]+)(\s*:\s*)(.+?)(\s*)$/);
+    if (pm) {
+      const [, pre, prop, colon, val, post] = pm;
+      const semi = isLast ? '' : '<span class="css-tok-punct">;</span>';
+      return `${pre}<span class="css-tok-prop">${prop}</span><span class="css-tok-punct">${colon}</span>${_applyColorChips(val)}${post}${semi}`;
+    }
+    return isLast ? frag : frag + '<span class="css-tok-punct">;</span>';
+  }).join('');
+}
+
+function _renderCSSLines(escapedText) {
+  return escapedText.split('\n').map(line => {
+    const trimmed = line.trim();
+    if (!trimmed) return line;
+
+    // Standalone closing brace
+    if (trimmed === '}') return `<span class="css-tok-punct">${line}</span>`;
+
+    // Single-line block: "selector { prop: val; prop: val; }" or "selector { }"
+    const slm = line.match(/^(\s*)(.+?)\s*\{([^}]*)\}\s*$/);
+    if (slm) {
+      const [, indent, sel, body] = slm;
+      const props = body.trim() ? _renderPropList(body) : '';
+      return `${indent}<span class="css-tok-selector">${sel}</span><span class="css-tok-punct"> {</span>${props}<span class="css-tok-punct">}</span>`;
+    }
+
+    // Selector opening line (ends with '{', no closing '}')
+    if (trimmed.endsWith('{')) {
+      return `<span class="css-tok-selector">${line}</span>`;
+    }
+
+    // Property line: "  prop: value;" (inside an open block)
+    const pm = line.match(/^(\s*)([-\w]+)(\s*:\s*)(.*?)(\s*;?\s*)$/);
+    if (pm && trimmed.includes(':')) {
+      const [, indent, prop, colon, val, trail] = pm;
+      return `${indent}<span class="css-tok-prop">${prop}</span><span class="css-tok-punct">${colon}</span>${_applyColorChips(val)}<span class="css-tok-punct">${trail}</span>`;
+    }
+
+    return _applyColorChips(line);
+  }).join('\n');
+}
+
+function updateCodeHighlight(taId, highlightId) {
+  const ta = document.getElementById(taId);
+  const hl = document.getElementById(highlightId);
+  if (!ta || !hl) return;
+  hl.innerHTML = renderCSSFormatted(ta.value) + ' ';
+  // Auto-grow textarea to content height (eliminates scrollbar → no width mismatch)
+  ta.style.height = 'auto';
+  ta.style.height = ta.scrollHeight + 'px';
+  // Keep highlight exactly the same height as textarea so it doesn't bleed past border
+  hl.style.height = ta.style.height;
+}
+
+// ── Draggable floating panels ─────────────────────────────────────
+function makePanelDraggable(panelEl, handleEl) {
+  let _d = null;
+  handleEl.addEventListener('mousedown', e => {
+    if (e.button !== 0 || e.target.closest('button')) return;
+    const rect = panelEl.getBoundingClientRect();
+    _d = { ox: e.clientX - rect.left, oy: e.clientY - rect.top };
+    // Convert any right/top CSS to explicit left/top so dragging works
+    panelEl.style.left = rect.left + 'px';
+    panelEl.style.top  = rect.top  + 'px';
+    panelEl.style.right  = 'auto';
+    panelEl.style.bottom = 'auto';
+    panelEl.style.position = 'fixed';
+    handleEl.style.cursor = 'grabbing';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!_d) return;
+    const left = Math.max(0, Math.min(e.clientX - _d.ox, window.innerWidth  - panelEl.offsetWidth));
+    const top  = Math.max(0, Math.min(e.clientY - _d.oy, window.innerHeight - panelEl.offsetHeight));
+    panelEl.style.left = left + 'px';
+    panelEl.style.top  = top  + 'px';
+  });
+  document.addEventListener('mouseup', () => {
+    if (_d) { _d = null; handleEl.style.cursor = 'grab'; }
+  });
+}
+
 // ── Element style editor ──────────────────────────────────────────
 let _elemStyleTarget = null;
+
+// Returns a stable path key for an SVG element relative to #map-svg root
+function _getSVGElemKey(el) {
+  const svgRoot = document.getElementById('map-svg');
+  if (!svgRoot || !svgRoot.contains(el)) return null;
+  const parts = [];
+  let node = el;
+  while (node && node !== svgRoot) {
+    const tag = node.tagName;
+    const parent = node.parentNode;
+    const siblings = parent ? Array.from(parent.children).filter(c => c.tagName === tag) : [];
+    const idx = siblings.indexOf(node) + 1;
+    parts.unshift(siblings.length > 1 ? `${tag}[${idx}]` : tag);
+    node = parent;
+  }
+  return parts.join('/');
+}
+
+// Finds an SVG element by the path key produced by _getSVGElemKey
+function _findByElemKey(key, svgRoot) {
+  if (!key || !svgRoot) return null;
+  if (key.startsWith('#')) return document.getElementById(key.slice(1));
+  const parts = key.split('/');
+  let node = svgRoot;
+  for (const part of parts) {
+    const m = part.match(/^([A-Za-z:]+)(?:\[(\d+)\])?$/);
+    if (!m || !node) return null;
+    const [, tag, idxStr] = m;
+    const idx = idxStr ? parseInt(idxStr) - 1 : 0;
+    const children = Array.from(node.children).filter(c => c.tagName === tag);
+    node = children[idx] || null;
+  }
+  return node;
+}
 
 function toggleStylePicker() {
   stylePickerMode = !stylePickerMode;
@@ -1982,8 +2587,90 @@ function toggleStylePicker() {
   if (!stylePickerMode) closeElemStylePopover();
 }
 
+// ── Class CSS editor helpers ───────────────────────────────────────
+function _rgbToHex(str) {
+  return str.replace(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\s*\)/g, (_, r, g, b, a) => {
+    const hex = '#' + [r, g, b].map(n => parseInt(n).toString(16).padStart(2, '0')).join('');
+    if (a !== undefined && parseFloat(a) < 1) {
+      const ah = Math.round(parseFloat(a) * 255).toString(16).padStart(2, '0');
+      return hex + ah;
+    }
+    return hex;
+  });
+}
+
+function _getClassCSSText(cls) {
+  const re = new RegExp('\\.' + cls.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?![\\w-])');
+  const propMap = new Map();
+  for (const sheet of document.styleSheets) {
+    try {
+      for (const rule of sheet.cssRules) {
+        if (!(rule instanceof CSSStyleRule)) continue;
+        const sels = rule.selectorText.split(',').map(s => s.trim());
+        if (!sels.some(s => re.test(s))) continue;
+        rule.style.cssText.split(';').forEach(part => {
+          const ci = part.indexOf(':');
+          if (ci < 0) return;
+          const p = part.slice(0, ci).trim();
+          const v = _rgbToHex(part.slice(ci + 1).trim());
+          if (p) propMap.set(p, v);
+        });
+      }
+    } catch(e) {}
+  }
+  return [...propMap.entries()].map(([p, v]) => `${p}: ${v};`).join('\n');
+}
+
+function _buildClassEditors(el) {
+  const container = document.getElementById('elem-cls-editors');
+  container.innerHTML = '';
+  const classes = ((el.className && el.className.baseVal !== undefined)
+    ? el.className.baseVal.trim()
+    : (el.getAttribute('class') || ''))
+    .split(/\s+/).filter(c => c && c !== 'edit-pick-selected');
+
+  classes.forEach((cls, i) => {
+    const cssText = _classOverrides[cls] !== undefined ? _classOverrides[cls] : _getClassCSSText(cls);
+    const taId = `cls-ta-${i}`;
+    const hlId = `cls-hl-${i}`;
+    const section = document.createElement('div');
+    section.className = 'cls-editor-section';
+    section.innerHTML =
+      `<div class="cls-editor-header">.${cls}</div>` +
+      `<div class="code-editor-wrap">` +
+        `<div class="code-highlight" id="${hlId}" style="padding:5px 6px"></div>` +
+        `<textarea id="${taId}" class="elem-field-ta cls-ta" data-cls="${cls}" spellcheck="false" placeholder="/* no rules for .${cls} */"></textarea>` +
+      `</div>`;
+    container.appendChild(section);
+    const ta = document.getElementById(taId);
+    ta.value = cssText;
+    ta.addEventListener('input', () => updateCodeHighlight(taId, hlId));
+    updateCodeHighlight(taId, hlId);
+  });
+}
+
+function _applyClassCSSEditors() {
+  const clsTas = document.querySelectorAll('#elem-cls-editors .cls-ta');
+  if (!clsTas.length) return;
+  clsTas.forEach(ta => {
+    _classOverrides[ta.dataset.cls] = ta.value.trim();
+  });
+  let style = document.getElementById('map-class-override');
+  if (!style) {
+    style = document.createElement('style');
+    style.id = 'map-class-override';
+    document.head.appendChild(style);
+  }
+  style.textContent = Object.entries(_classOverrides)
+    .filter(([, v]) => v)
+    .map(([cls, v]) => `.${cls} { ${v} }`)
+    .join('\n');
+}
+
 function openElemStylePopover(el, clientX, clientY) {
   _elemStyleTarget = el;
+  _epSetSelected(_epElemKey(el));
+  attachVertexAnchors(el);
   const pop = document.getElementById('elem-style-popover');
   const labelEl = document.getElementById('elem-style-label');
   const idEl = document.getElementById('elem-style-id');
@@ -1991,27 +2678,42 @@ function openElemStylePopover(el, clientX, clientY) {
   const ta = document.getElementById('elem-style-ta');
 
   const tag = el.tagName.toLowerCase();
-  const rawCls = (el.className && el.className.baseVal) ? el.className.baseVal.trim() : (el.getAttribute('class') || '');
+  const rawCls = ((el.className && el.className.baseVal !== undefined)
+    ? el.className.baseVal.trim()
+    : (el.getAttribute('class') || ''))
+    .split(/\s+/).filter(c => c && c !== 'edit-pick-selected').join(' ');
 
   labelEl.textContent = '<' + tag + '>';
   idEl.value = el.id || '';
   clsEl.value = rawCls;
   ta.value = el.getAttribute('style') || '';
 
+  // Build per-class CSS editors; rebuild when class names change
+  _buildClassEditors(el);
+  clsEl.oninput = () => {
+    const fakeEl = { className: { baseVal: clsEl.value }, getAttribute: () => clsEl.value };
+    _buildClassEditors(fakeEl);
+  };
+
+  // Update inline style preview
+  updateCodeHighlight('elem-style-ta', 'elem-style-highlight');
+
   // Position popover near click, keeping within viewport
-  const pw = 290, ph = 220;
+  const pw = 300, ph = 320;
   let left = clientX + 12;
   let top = clientY - 20;
   if (left + pw > window.innerWidth - 8) left = clientX - pw - 12;
   if (top + ph > window.innerHeight - 8) top = window.innerHeight - ph - 8;
   pop.style.left = left + 'px';
   pop.style.top = Math.max(8, top) + 'px';
+  pop.style.right = 'auto';
   pop.style.width = pw + 'px';
   pop.classList.add('open');
   ta.focus();
 }
 
 function closeElemStylePopover() {
+  clearVertexAnchors();
   document.getElementById('elem-style-popover').classList.remove('open');
   _elemStyleTarget = null;
 }
@@ -2022,6 +2724,11 @@ function applyElemStyle() {
   const newCls   = document.getElementById('elem-style-cls').value.trim();
   const styleStr = document.getElementById('elem-style-ta').value.trim();
 
+  // Capture stable key BEFORE changing the id
+  const key = _elemStyleTarget.id
+    ? '#' + _elemStyleTarget.id
+    : _getSVGElemKey(_elemStyleTarget);
+
   if (newId)  _elemStyleTarget.id = newId;
   else        _elemStyleTarget.removeAttribute('id');
 
@@ -2030,6 +2737,12 @@ function applyElemStyle() {
 
   if (styleStr) _elemStyleTarget.setAttribute('style', styleStr);
   else          _elemStyleTarget.removeAttribute('style');
+
+  // Track override for persistence
+  if (key) elemOverrides[key] = { id: newId, cls: newCls.split(/\s+/).filter(c => c && c !== 'edit-pick-selected').join(' '), style: styleStr };
+
+  // Apply any edited class CSS rules
+  _applyClassCSSEditors();
 
   closeElemStylePopover();
 }
@@ -2155,6 +2868,8 @@ function applyColorPicker() {
   const color=toHex8(r,g,b,_cpA);
   ta.value=ta.value.slice(0,start)+color+ta.value.slice(end);
   ta.setSelectionRange(start,start+color.length);
+  const hlId = ta.id.replace('-ta', '-highlight');
+  updateCodeHighlight(ta.id, hlId);
   closeColorPicker();ta.focus();
 }
 
@@ -2189,6 +2904,17 @@ function initColorPicker() {
       if(hit) openColorPicker(ta,hit.start,hit.end,hit.value);
     });
   });
+
+  // Live highlight on input + scroll sync
+  ['css-editor-ta', 'elem-style-ta'].forEach(taId => {
+    const hlId = taId.replace('-ta', '-highlight');
+    const ta = document.getElementById(taId);
+    ta.addEventListener('input',  () => updateCodeHighlight(taId, hlId));
+    ta.addEventListener('scroll', () => {
+      const hl = document.getElementById(hlId);
+      if (hl) { hl.scrollTop = ta.scrollTop; hl.scrollLeft = ta.scrollLeft; }
+    });
+  });
 }
 
 document.addEventListener('keydown', e => {
@@ -2204,7 +2930,329 @@ document.addEventListener('keydown', e => {
   }
 });
 
-document.addEventListener('DOMContentLoaded', () => { loadResources(); initColorPicker(); });
+// ── Elements Panel ────────────────────────────────────────────────
+let _epCollapsed = new Set();
+let _epHidden    = new Set();
+let _epSelected  = null;
+
+const _EP_SKIP_TAGS = new Set(['defs','style','script','title','desc','metadata']);
+
+function _epSetSelected(key) {
+  if (_epSelected === key) return;
+  if (_epSelected) {
+    const prev = _epGetElem(_epSelected);
+    if (prev) prev.classList.remove('edit-pick-selected');
+  }
+  _epSelected = key;
+  if (key) {
+    const el = _epGetElem(key);
+    if (el) el.classList.add('edit-pick-selected');
+  }
+  const panel = document.getElementById('elem-panel');
+  if (panel && panel.classList.contains('open')) refreshElemPanel();
+}
+
+// Walk up from el to nearest named (id'd) SVG element listed in the panel
+function _epPickTarget(el) {
+  const svg = document.getElementById('map-svg');
+  let cur = el;
+  while (cur && cur !== svg) {
+    const tag = (cur.tagName || '').toLowerCase();
+    if (!_EP_SKIP_TAGS.has(tag) && cur.id !== 'vertex-anchor-layer') {
+      if (cur.id) return cur;
+    }
+    cur = cur.parentElement;
+  }
+  return el;
+}
+
+function openElemPanel() {
+  document.getElementById('elem-panel').classList.add('open');
+  refreshElemPanel();
+}
+function closeElemPanel() {
+  document.getElementById('elem-panel').classList.remove('open');
+}
+
+function initElemPanelResize() {
+  const panel = document.getElementById('elem-panel');
+  let _r = null;
+  panel.addEventListener('mousedown', e => {
+    const dir = e.target.dataset.epResize;
+    if (!dir) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = panel.getBoundingClientRect();
+    _r = { dir, startX: e.clientX, startY: e.clientY,
+           startW: rect.width, startH: rect.height };
+    document.body.style.userSelect = 'none';
+  });
+  document.addEventListener('mousemove', e => {
+    if (!_r) return;
+    const dw = e.clientX - _r.startX;
+    const dh = e.clientY - _r.startY;
+    if (_r.dir === 'e' || _r.dir === 'se') {
+      panel.style.width = Math.max(180, Math.min(_r.startW + dw, window.innerWidth - 32)) + 'px';
+    }
+    if (_r.dir === 's' || _r.dir === 'se') {
+      panel.style.height = Math.max(160, Math.min(_r.startH + dh, window.innerHeight - 32)) + 'px';
+    }
+  });
+  document.addEventListener('mouseup', () => {
+    if (_r) { _r = null; document.body.style.userSelect = ''; }
+  });
+}
+
+function _epElemKey(el) {
+  return el.id ? '#' + el.id : _getSVGElemKey(el);
+}
+function _epGetElem(key) {
+  if (!key) return null;
+  if (key.startsWith('#')) return document.getElementById(key.slice(1));
+  return _findByElemKey(key, document.getElementById('map-svg'));
+}
+
+function _epBuildRows(parent, depth, container) {
+  Array.from(parent.children).reverse().forEach(el => {
+    const tag = el.tagName.toLowerCase();
+    if (_EP_SKIP_TAGS.has(tag)) return;
+    if (el.id === 'vertex-anchor-layer') return;
+
+    const key = _epElemKey(el);
+    const id  = el.id || '';
+    const cls = (el.getAttribute('class') || '')
+                  .split(/\s+/).filter(c => c && c !== 'edit-pick-selected').join(' ');
+    const isG          = tag === 'g';
+    const hasKids      = isG && Array.from(el.children).some(c => !_EP_SKIP_TAGS.has(c.tagName.toLowerCase()));
+    const isCollapsed  = _epCollapsed.has(key);
+    const isHidden     = _epHidden.has(key);
+    const isSelected   = (_epSelected === key);
+
+    const row = document.createElement('div');
+    row.className = 'ep-row' +
+                    (isSelected  ? ' ep-selected'  : '') +
+                    (isHidden    ? ' ep-hidden-row' : '');
+    row.dataset.key = key;
+    row.style.paddingLeft = (6 + depth * 14) + 'px';
+
+    // ── Expand / collapse toggle ──
+    const toggle = document.createElement('button');
+    toggle.className = 'ep-toggle';
+    if (hasKids) {
+      toggle.textContent = isCollapsed ? '▶' : '▼';
+      toggle.title = isCollapsed ? 'Expand' : 'Collapse';
+      toggle.addEventListener('click', e => {
+        e.stopPropagation();
+        if (_epCollapsed.has(key)) _epCollapsed.delete(key);
+        else _epCollapsed.add(key);
+        refreshElemPanel();
+      });
+    } else {
+      toggle.style.pointerEvents = 'none';
+    }
+    row.appendChild(toggle);
+
+    // ── Checkbox (for grouping) ──
+    const cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.className = 'ep-cb';
+    cb.title = 'Select for grouping';
+    cb.addEventListener('click', e => e.stopPropagation());
+    row.appendChild(cb);
+
+    // ── Label ──
+    const label = document.createElement('div');
+    label.className = 'ep-label';
+    let lhtml = `<span class="ep-tag">&lt;${tag}&gt;</span>`;
+    if (id)       lhtml += ` <span class="ep-eid">#${id}</span>`;
+    else if (cls) lhtml += ` <span class="ep-cls">.${cls.split(' ')[0]}</span>`;
+    label.innerHTML = lhtml;
+    label.title = `<${tag}>${id ? ' #'+id : ''}${cls ? ' .'+cls : ''}`;
+    label.addEventListener('click', e => {
+      e.stopPropagation();
+      _epSetSelected(key);
+      const target = _epGetElem(key);
+      if (target) {
+        const r = target.getBoundingClientRect();
+        openElemStylePopover(target, r.left + r.width / 2, r.top + r.height / 2);
+      }
+    });
+    row.appendChild(label);
+
+    // ── Visibility toggle ──
+    const vis = document.createElement('button');
+    vis.className = 'ep-vis';
+    vis.textContent = isHidden ? '○' : '●';
+    vis.title = isHidden ? 'Show' : 'Hide';
+    vis.addEventListener('click', e => {
+      e.stopPropagation();
+      const target = _epGetElem(key);
+      if (!target) return;
+      if (_epHidden.has(key)) {
+        _epHidden.delete(key);
+        target.style.display = '';
+      } else {
+        _epHidden.add(key);
+        target.style.display = 'none';
+      }
+      refreshElemPanel();
+    });
+    row.appendChild(vis);
+
+    // ── Action buttons ──
+    const acts = document.createElement('div');
+    acts.className = 'ep-actions';
+
+    // Move up
+    const upBtn = document.createElement('button');
+    upBtn.className = 'ep-act-btn'; upBtn.title = 'Move up (forward in Z)';
+    upBtn.textContent = '↑';
+    upBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const t = _epGetElem(key);
+      if (t && t.previousElementSibling) t.parentNode.insertBefore(t, t.previousElementSibling);
+      refreshElemPanel();
+    });
+    acts.appendChild(upBtn);
+
+    // Move down
+    const downBtn = document.createElement('button');
+    downBtn.className = 'ep-act-btn'; downBtn.title = 'Move down (back in Z)';
+    downBtn.textContent = '↓';
+    downBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const t = _epGetElem(key);
+      if (t && t.nextElementSibling) t.parentNode.insertBefore(t.nextElementSibling, t);
+      refreshElemPanel();
+    });
+    acts.appendChild(downBtn);
+
+    // Duplicate
+    const dupBtn = document.createElement('button');
+    dupBtn.className = 'ep-act-btn'; dupBtn.title = 'Duplicate';
+    dupBtn.textContent = '⧉';
+    dupBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const t = _epGetElem(key);
+      if (!t) return;
+      const clone = t.cloneNode(true);
+      clone.removeAttribute('id');
+      clone.querySelectorAll('[id]').forEach(c => c.removeAttribute('id'));
+      t.parentNode.insertBefore(clone, t.nextSibling);
+      refreshElemPanel();
+    });
+    acts.appendChild(dupBtn);
+
+    // Ungroup (only for <g>)
+    if (isG) {
+      const ugBtn = document.createElement('button');
+      ugBtn.className = 'ep-act-btn'; ugBtn.title = 'Ungroup';
+      ugBtn.textContent = '⊡';
+      ugBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        _ungroupElem(_epGetElem(key));
+        if (_epSelected === key) _epSelected = null;
+        refreshElemPanel();
+      });
+      acts.appendChild(ugBtn);
+    }
+
+    // Delete
+    const delBtn = document.createElement('button');
+    delBtn.className = 'ep-act-btn ep-del'; delBtn.title = 'Delete element';
+    delBtn.textContent = '×';
+    let _delArmed = false, _delTimer = null;
+    delBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (!_delArmed) {
+        _delArmed = true;
+        delBtn.textContent = '✕'; delBtn.style.background = '#f0d0d0'; delBtn.style.color = '#9a1010';
+        _delTimer = setTimeout(() => { _delArmed = false; delBtn.textContent = '×'; delBtn.style = ''; }, 2000);
+        return;
+      }
+      clearTimeout(_delTimer);
+      const t = _epGetElem(key);
+      if (t) t.remove();
+      if (_epSelected === key) _epSelected = null;
+      refreshElemPanel();
+    });
+    acts.appendChild(delBtn);
+
+    row.appendChild(acts);
+    container.appendChild(row);
+
+    // Recurse into children
+    if (hasKids && !isCollapsed) {
+      _epBuildRows(el, depth + 1, container);
+    }
+  });
+}
+
+function refreshElemPanel() {
+  const list = document.getElementById('elem-panel-list');
+  if (!list) return;
+  list.innerHTML = '';
+  const svg = document.getElementById('map-svg');
+  if (!svg) return;
+  _epBuildRows(svg, 0, list);
+}
+
+function groupCheckedElems() {
+  const list = document.getElementById('elem-panel-list');
+  const checked = [...list.querySelectorAll('.ep-cb:checked')];
+  if (checked.length < 2) { alert('Check at least 2 elements to group.'); return; }
+  const elems = checked.map(cb => _epGetElem(cb.closest('.ep-row').dataset.key)).filter(Boolean);
+  // Anchor insertion point at the first element in DOM order
+  let first = elems[0];
+  elems.forEach(el => { if (el.compareDocumentPosition(first) & Node.DOCUMENT_POSITION_FOLLOWING) first = el; });
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  first.parentNode.insertBefore(g, first);
+  elems.forEach(el => g.appendChild(el));
+  _epSelected = _epElemKey(g);
+  refreshElemPanel();
+}
+
+function _ungroupElem(g) {
+  if (!g || g.tagName.toLowerCase() !== 'g') return;
+  const parent = g.parentNode;
+  [...g.children].forEach(child => parent.insertBefore(child, g));
+  g.remove();
+}
+
+function ungroupSelectedElem() {
+  if (!_epSelected) { alert('Click an element label to select it first.'); return; }
+  const el = _epGetElem(_epSelected);
+  if (!el || el.tagName.toLowerCase() !== 'g') { alert('Selected element must be a <g> group.'); return; }
+  _ungroupElem(el);
+  _epSelected = null;
+  refreshElemPanel();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadResources();
+  initColorPicker();
+
+  // Draggable panels
+  makePanelDraggable(
+    document.getElementById('css-editor-panel'),
+    document.querySelector('#css-editor-panel .panel-header')
+  );
+  makePanelDraggable(
+    document.getElementById('elem-style-popover'),
+    document.querySelector('#elem-style-popover .popover-header')
+  );
+  makePanelDraggable(
+    document.getElementById('elem-panel'),
+    document.getElementById('elem-panel-header')
+  );
+  initElemPanelResize();
+
+  // Show the "Save to Files" button only when served from localhost (dev server)
+  const host = window.location.hostname;
+  if (host === 'localhost' || host === '127.0.0.1') {
+    const btn = document.getElementById('save-files-btn');
+    if (btn) btn.style.display = '';
+  }
+});
 
 // ── Plat overlay ──────────────────────────────────────────────────
 // Base transform (computed from PDF→SVG point matching):
@@ -2212,29 +3260,29 @@ document.addEventListener('DOMContentLoaded', () => { loadResources(); initColor
 // SVG_y = 0.19610 * img_px_row + 257.78
 // SVG matrix(a,b,c,d,e,f): x'=a*x+c*y+e, y'=b*x+d*y+f
 // matrix(a,0,0,a,tx,ty): svg_x = a*png_x + tx, svg_y = a*png_y + ty
-const TOPO_BASE_SX = 1.8792;
-const TOPO_BASE_SY = 1.8792;
-const TOPO_BASE_TX = -70.62;
-const TOPO_BASE_TY = -128.57;
+const TOPO_BASE_SX = 1.0;
+const TOPO_BASE_SY = 1.0;
+const TOPO_BASE_TX = 0;
+const TOPO_BASE_TY = 0;
 const TOPO_CX = 555, TOPO_CY = 513;
 
 let topoFg = false;
 
 function toggleTopoOverlay() {
   topoFg = document.getElementById('cb-topo').checked;
-  const img = document.getElementById('topo-overlay');
-  const svg = document.getElementById('map-svg');
   const panel = document.getElementById('topo-controls');
   panel.style.display = topoFg ? 'block' : 'none';
   if (topoFg) {
-    img.style.display = 'block';
-    img.style.opacity = '0';
-    svg.appendChild(img);
-    requestAnimationFrame(() => requestAnimationFrame(() => updateTopoOverlay()));
+    updateTopoOverlay();
   } else {
-    img.style.opacity = '0.1';
-    setTimeout(() => { if (!topoFg) svg.insertBefore(img, svg.children[2]); }, 400);
+    document.getElementById('topo-overlay').style.opacity = '0';
   }
+}
+
+function toggleEasementOverlay() {
+  const show = document.getElementById('cb-easements').checked;
+  const g = document.getElementById('easement-overlay');
+  if (g) g.style.display = show ? '' : 'none';
 }
 
 function copyTopoSettings() {
@@ -2367,7 +3415,7 @@ function updateOverlay() {
 // ── Export / Print ─────────────────────────────────────────────────
 
 const EXPORT_CSS = [
-  "@import url('https://fonts.googleapis.com/css2?family=Buenard:wght@400;700&family=Jost:wght@300;400;500;600&display=swap');",
+  "@import url('https://fonts.googleapis.com/css2?Radley:ital@0;1&family=Jost:wght@300;400;500;600&display=swap')",
   ".lot{fill:#ccd9b8;stroke:#8a9e72;stroke-width:1.5}",
   ".lot.available{fill:url(#pat-available)}",
   ".lot.sold{fill:url(#pat-sold)}",
@@ -2383,6 +3431,9 @@ const EXPORT_CSS = [
   ".stream-tob{fill:none;stroke:#7aabbf;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}",
   ".stream-buffer{fill:none;stroke:#7aabbf;stroke-width:1;stroke-dasharray:6,3;opacity:0.6}",
   ".easement{fill:none;stroke:#e6a800;stroke-width:1.5;stroke-dasharray:5,3;opacity:0.5}",
+  ".esmt{stroke:darkorange;stroke-width:2;stroke-dasharray:6 3;stroke-linejoin:round;stroke-linecap:round;pointer-events:none}",
+  ".esmt-open{fill:none}",
+  ".esmt-closed{fill:darkorange;fill-opacity:0.25}",
   ".road-interior{fill:#cac4b4;stroke:none}",
   ".road-label{font-family:'Jost',sans-serif;font-size:13px;font-weight:500;fill:#8a8274;letter-spacing:3px;text-transform:uppercase}",
   ".builder-dot{opacity:0}",
@@ -2406,6 +3457,8 @@ const EXPORT_CSS_BW = [
   ".stream-tob{stroke:#000000}",
   ".stream-buffer{stroke:#000000}",
   ".easement{stroke:#000000}",
+  ".esmt{stroke:#000000}",
+  ".esmt-closed{fill:#aaaaaa;fill-opacity:0.25}",
 ].join('\n');
 
 // Transparent background: give roads a white fill so they remain visible
@@ -2526,12 +3579,13 @@ async function _buildExportSVG(bw) {
   });
   await _inlineImages(clone);
 
-  // Always show topo contour lines in exports, even if user toggled them off
-  const topoEl = clone.querySelector('#topo-overlay');
-  if (topoEl) {
-    const cur = parseFloat(topoEl.style.opacity) || parseFloat(topoEl.getAttribute('opacity')) || 0;
-    topoEl.setAttribute('opacity', String(Math.max(cur, 0.12)));
-    topoEl.style.opacity = '';
+  // Always show background topo in exports; also bake in overlay if active
+  const topoBg = clone.querySelector('#topo-bg');
+  if (topoBg) { topoBg.setAttribute('opacity', '0.1'); topoBg.style.opacity = ''; }
+  const topoOv = clone.querySelector('#topo-overlay');
+  if (topoOv) {
+    const cur = parseFloat(topoOv.style.opacity) || parseFloat(topoOv.getAttribute('opacity')) || 0;
+    if (cur > 0) { topoOv.setAttribute('opacity', String(cur)); topoOv.style.opacity = ''; }
   }
 
   // Inline JWRG logo as native SVG markup — reads from embedded data block, works on file://
@@ -2595,7 +3649,7 @@ async function _buildExportSVG(bw) {
   titleG.appendChild(sub);
   const title = document.createElementNS(ns, 'text');
   [['x', 12],['y', VB_Y + 46],['text-anchor','start'],
-   ['font-family','Buenard,Georgia,serif'],['font-size','26'],['font-weight','700'],
+   ['font-family','Radley','serif'],['font-size','26'],['font-weight','700'],
    ['letter-spacing','2'],['fill','#2c3e28']].forEach(([k,v]) => title.setAttribute(k,v));
   title.textContent = 'TENNYSON';
   titleG.appendChild(title);

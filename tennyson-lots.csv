@@ -1,6 +1,6 @@
 lot_id,lot_number,acres,status,builder_name,builder_short,builder_contact,builder_address,builder_phone,builder_email,builder_color,builder_border
 1,1,1.1586,sold,,,,,,,,
-2,2,0.9848,available,Pinnacle Home Builders & Construction Company Inc.,Pinnacle,Mike & Renee McNally,"210 Barn Hill Ln, Wake Forest, NC 27587",919-291-7000,mcnallyspinnacle@aol.com,#4a80c4,#2a5a9a
+2,2,0.9848,reserved,Pinnacle Home Builders & Construction Company Inc.,Pinnacle,Mike & Renee McNally,"210 Barn Hill Ln, Wake Forest, NC 27587",919-291-7000,mcnallyspinnacle@aol.com,#4a80c4,#2a5a9a
 3,3,0.9757,available,Colebrooke Custom Homes,Colebrooke,Dustin & Lauren Moore,"848 Cooke Rd, Louisburg, NC 27549",(919) 697-7308,dustin.colebrookehomes@gmail.com,#c06090,#903a68
 4,4,0.9192,available,JW2 Building Co.,JW2 Building,Jon Ward,"3316 Thomas Rd., Raleigh, NC 27607",919-280-2107,jon@jw2buildingcompany.com,#40a080,#207a58
 5,5,0.9239,reserved,,,,,,,,
@@ -13,9 +13,9 @@ lot_id,lot_number,acres,status,builder_name,builder_short,builder_contact,builde
 12,12,0.9183,available,Homes by Thadd Roberts Inc.,Thadd Roberts,Thadd Roberts,"8305 Six Forks Rd #203, Raleigh, NC 27615",919-669-7875,thaddroberts1@gmail.com,#c49040,#9a6a20
 13,13,0.9183,available,Pinnacle Home Builders & Construction Company Inc.,Pinnacle,Mike & Renee McNally,"210 Barn Hill Ln, Wake Forest, NC 27587",919-291-7000,mcnallyspinnacle@aol.com,#4a80c4,#2a5a9a
 14,14,1.0056,available,Lilium Homes,Lilium Homes,Juana Martinez,"5 W Mason St., Franklinton, NC 27525",336-823-4342,jmartinez@Lilium-homes.com,#9060b8,#6a3a90
-15,15,0.9935,available,JW2 Building Co.,JW2 Building,Jon Ward,"3316 Thomas Rd., Raleigh, NC 27607",919-280-2107,jon@jw2buildingcompany.com,#40a080,#207a58
+15,15,0.9935,reserved,JW2 Building Co.,JW2 Building,Jon Ward,"3316 Thomas Rd., Raleigh, NC 27607",919-280-2107,jon@jw2buildingcompany.com,#40a080,#207a58
 16,16,0.9935,available,Colebrooke Custom Homes,Colebrooke,Dustin & Lauren Moore,"848 Cooke Rd, Louisburg, NC 27549",(919) 697-7308,dustin.colebrookehomes@gmail.com,#c06090,#903a68
 17,17,0.9218,available,Lilium Homes,Lilium Homes,Juana Martinez,"5 W Mason St., Franklinton, NC 27525",336-823-4342,jmartinez@Lilium-homes.com,#9060b8,#6a3a90
-18,18,1.4563,available,,,,,,,,
+18,18,1.4563,sold,,,,,,,,
 a,A,1.1649,reserved,,,,,,,,
 b,B,1.2244,reserved,,,,,,,,
