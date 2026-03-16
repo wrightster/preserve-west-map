@@ -127,8 +127,8 @@
       </g>
     </pattern>
     <pattern id="pat-available-sel" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="scale(.5)">
-      <rect width="28" height="28" fill="#8aaa68"/>
-      <g fill="#ccd9b8">
+      <rect width="28" height="28" fill="#ccd9b8"/>
+      <g fill="#8aaa68">
         <circle cx="7" cy="7" r="5"/>
         <circle cx="21" cy="7" r="5"/>
         <circle cx="0" cy="21" r="5"/>
@@ -141,8 +141,8 @@
       <polygon points="7,1 13,7 7,13 1,7" fill="#e8c0b8"/>
     </pattern>
     <pattern id="pat-sold-sel" x="0" y="0" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="scale(.5)">
-      <rect width="14" height="14" fill="#c07868"/>
-      <polygon points="7,1 13,7 7,13 1,7" fill="#e8c0b8"/>
+      <rect width="14" height="14" fill="#e8c0b8"/>
+      <polygon points="7,1 13,7 7,13 1,7" fill="#c07868"/>
     </pattern>
     <pattern id="pat-reserved" x="0" y="0" width="28" height="33.48" patternUnits="userSpaceOnUse" patternTransform="scale(.5)">
       <rect width="28" height="33.48" fill="#e8dca0" fill-opacity="0.7"/>
@@ -155,8 +155,8 @@
       </g>
     </pattern>
     <pattern id="pat-reserved-sel" x="0" y="0" width="28" height="33.48" patternUnits="userSpaceOnUse" patternTransform="scale(.5)">
-      <rect width="28" height="33.48" fill="#c8a030"/>
-      <g fill="#e8dca0">
+      <rect width="28" height="33.48" fill="#e8dca0"/>
+      <g fill="#c8a030">
         <polygon points="7,1.37 15.09,15.37 -1.09,15.37"/>
         <polygon points="21,15.37 12.91,1.37 29.09,1.37"/>
         <polygon points="0,32.11 -8.09,18.11 8.09,18.11"/>
