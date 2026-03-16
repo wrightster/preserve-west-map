@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tennyson — Phase One</title>
-<link rel="stylesheet" href="map-styles.css">
+<style id="map-styles"></style>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Radley:ital@0;1&family=Jost:wght@300;400;500;600&display=swap');
 
@@ -1587,10 +1587,12 @@ function rebuildBuilderLegend() {
 // ── Load SVG + CSV from external files ─────────────────────────────
 async function loadResources() {
   const container = document.getElementById('map-svg-container');
-  const [svgText, csvText] = await Promise.all([
+  const [svgText, csvText, cssText] = await Promise.all([
     fetch('tennyson-map.svg', {cache: 'no-store'}).then(r => r.text()),
     fetch('tennyson-lots.csv', {cache: 'no-store'}).then(r => r.text()),
+    fetch('map-styles.css', {cache: 'no-store'}).then(r => r.text()),
   ]);
+  document.getElementById('map-styles').textContent = cssText;
   container.innerHTML = svgText;
   _lastRows = parseCSV(csvText);
   rebuildFromCSV(_lastRows);
