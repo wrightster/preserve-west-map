@@ -24,6 +24,9 @@
 .lot.available { fill: url(#pat-available); }
 .lot.sold      { fill: url(#pat-sold); }
 .lot.reserved  { fill: url(#pat-reserved); }
+.lot.selected.available { fill: url(#pat-available-sel); }
+.lot.selected.sold      { fill: url(#pat-sold-sel); }
+.lot.selected.reserved  { fill: url(#pat-reserved-sel); }
 .lot.dimmed    { opacity: 0.2; }
 
 /* ── Lot labels ────────────────────────────────────────────────────── */
