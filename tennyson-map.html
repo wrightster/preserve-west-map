@@ -1613,6 +1613,7 @@ function init() {
   document.getElementById('map-svg').addEventListener('click', e => {
     if (!e.target.classList.contains('lot')) {
       document.querySelectorAll('.lot.selected').forEach(el => el.classList.remove('selected'));
+      document.querySelectorAll('.lot-label-group.label-selected').forEach(el => el.classList.remove('label-selected'));
       selectedId = null;
       document.getElementById('no-sel').style.display = 'block';
       document.getElementById('lot-info').classList.remove('show');
@@ -1641,12 +1642,15 @@ function onLotClick(e) {
 
 function selectLot(id) {
   document.querySelectorAll('.lot.selected').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('.lot-label-group.label-selected').forEach(el => el.classList.remove('label-selected'));
   selectedId = id;
   const el = document.getElementById('lot-' + id);
   if (el) {
     el.classList.add('selected');
     el.parentNode.appendChild(el);
   }
+  const labelG = document.querySelector(`.lot-label-group[data-lot-id="${id}"]`);
+  if (labelG) labelG.classList.add('label-selected');
   const lot = LOT_DATA.find(l => l.id === id);
   document.getElementById('no-sel').style.display = 'none';
   document.getElementById('lot-info').classList.add('show');
@@ -1884,6 +1888,7 @@ function closePanel() {
   const panel = document.getElementById('info-panel');
   panel.classList.remove('sheet-open');
   document.querySelectorAll('.lot.selected').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('.lot-label-group.label-selected').forEach(el => el.classList.remove('label-selected'));
   selectedId = null;
   document.getElementById('no-sel').style.display = 'block';
   document.getElementById('lot-info').classList.remove('show');

@@ -48,6 +48,11 @@
   text-anchor: middle;
   dominant-baseline: middle;
 }
+.lot-label-group.label-selected .lot-label-num,
+.lot-label-group.label-selected .lot-label-acres {
+  fill: #ffffff;
+  filter: drop-shadow(1px 1px 0 #000) drop-shadow(-1px -1px 0 #000) drop-shadow(1px -1px 0 #000) drop-shadow(-1px 1px 0 #000);
+}
 
 /* ── Roads ─────────────────────────────────────────────────────────── */
 .road-fill {
