@@ -809,6 +809,10 @@
   #plat-controls input[type=range] { flex: 1; }
   #plat-controls .val { min-width: 36px; text-align: right; color: #555; }
   .btn-overlay.active { background: #3a4a2e; color: #fff; border-color: #2a3a1e; }
+  .tree-layer { pointer-events: none; }
+  .tree-layer use { fill: #4a6b35; filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.45)); }
+  #tree-edge-pick-layer { pointer-events: none; }
+  #tree-edge-pick-layer line { pointer-events: visibleStroke; cursor: pointer; }
 
 
   #builder-legend {
@@ -1345,6 +1349,8 @@
       <button class="btn"        id="btn-ov-plat"      onclick="togglePlatOverlay()">Plat</button>
       <button class="btn"        id="btn-ov-topo"      onclick="toggleTopoOverlay()">Topo</button>
       <button class="btn"        id="btn-ov-easements" onclick="toggleEasementOverlay()">Easements</button>
+      <button class="btn active" id="btn-ov-trees"     onclick="toggleTreeOverlay()">Trees</button>
+      <button class="btn"        id="btn-tree-edges"  onclick="toggleTreeEdgePick()" style="display:none">Tree Edges</button>
     </div>
     <div id="builder-legend">
       <div id="builder-list"></div>
@@ -1568,6 +1574,31 @@ let editMode = false, stylePickerMode = false, labelOffsets = {}, _lastRows = []
 let _drag = null;
 let _vertexDrag = null, _vertexLayer = null, _vertexEditTarget = null, _vertexDblClick = null;
 const ZOOM_ANIM_MS = 260;
+const TREE_CONFIG = {
+  enabled: true,
+  spacing: 10,
+  scatter: 5,
+  scatterAlong: 6,
+  scale: 1.5,
+  scaleVariance: 0.5,
+  roadProximityThreshold: 40,
+  insetFromEdge: 0,
+  minEdgeLength: 20,
+  seed: 12345,
+  variants: 3,
+  sparseSpacingMult: 1.5,   // spacing multiplier for sparse edges
+  sparseScatterMult: .8,    // scatter multiplier for sparse edges
+  sparseScaleMult: 0.7,     // scale multiplier for sparse edges
+  roadFalloffDist: 80,     // distance from road where shrinking begins
+  roadFalloffInner: 20,    // distance from road where scale is clamped to roadScaleMin
+  roadScaleMin: 0.7,       // minimum scale multiplier applied at roadFalloffInner and closer
+  roadPushMargin: 5,       // SVG units to offset trees pushed off road polygons
+};
+let treesVisible = true;
+let treeEdgePickMode = false;
+let EXCLUDED_TREE_EDGES = new Set();
+let SPARSE_TREE_EDGES = new Set();
+const _LS_TREE_EDGES = 'tennyson-excl-tree-edges';
 
 function zoomTo(newScale, newPanX, newPanY) {
   _zoomFrom = { scale, panX, panY };
@@ -1652,6 +1683,467 @@ function polygonCentroid(coords) {
     ];
   }
   return [cx / (6 * area), cy / (6 * area)];
+}
+
+// ── Tree placement helpers ─────────────────────────────────────────
+function parsePointsAttr(pts) {
+  const nums = pts.trim().split(/[\s,]+/).map(Number).filter(n => !isNaN(n));
+  const coords = [];
+  for (let i = 0; i < nums.length - 1; i += 2) coords.push([nums[i], nums[i + 1]]);
+  return coords;
+}
+
+function seededRand(seed) {
+  let s = seed >>> 0;
+  return function() {
+    s ^= s << 13; s ^= s >>> 17; s ^= s << 5;
+    return ((s >>> 0) / 4294967296);
+  };
+}
+
+function pointSegmentDist(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay;
+  const lenSq = dx * dx + dy * dy;
+  if (lenSq < 1e-10) return Math.hypot(px - ax, py - ay);
+  const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / lenSq));
+  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+}
+
+function nearestPointOnSegment(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay;
+  const lenSq = dx * dx + dy * dy;
+  if (lenSq < 1e-10) return [ax, ay];
+  const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / lenSq));
+  return [ax + t * dx, ay + t * dy];
+}
+
+function pointInPolygon(px, py, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i], [xj, yj] = poly[j];
+    if ((yi > py) !== (yj > py) && px < (xj - xi) * (py - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+// Returns road interior polygons as arrays of [x,y] pairs
+function getRoadPolygons() {
+  return [...document.querySelectorAll('.road-interior')]
+    .map(el => parsePointsAttr(el.getAttribute('points') || ''))
+    .filter(p => p.length >= 3);
+}
+
+// If [px,py] is inside any road polygon, pushes it to the nearest boundary point + margin.
+// Iterates until clear of all road polygons (handles road intersections).
+function pushOffRoad(px, py, roadPolys, margin) {
+  let x = px, y = py;
+  for (let iter = 0; iter < 8; iter++) {
+    let pushed = false;
+    for (const poly of roadPolys) {
+      if (!pointInPolygon(x, y, poly)) continue;
+      // Nearest point on boundary
+      let bestX = x, bestY = y, bestDist = Infinity;
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        const [nx, ny] = nearestPointOnSegment(x, y, poly[j][0], poly[j][1], poly[i][0], poly[i][1]);
+        const d = Math.hypot(nx - x, ny - y);
+        if (d < bestDist) { bestDist = d; bestX = nx; bestY = ny; }
+      }
+      // Push direction: from tree toward boundary (guaranteed outward)
+      const dx = bestX - x, dy = bestY - y;
+      const len = Math.hypot(dx, dy);
+      if (len > 1e-6) {
+        x = bestX + (dx / len) * margin;
+        y = bestY + (dy / len) * margin;
+      } else {
+        // Tree is exactly on boundary — nudge away from centroid
+        let cx = 0, cy = 0;
+        for (const [vx, vy] of poly) { cx += vx; cy += vy; }
+        cx /= poly.length; cy /= poly.length;
+        const cdx = x - cx, cdy = y - cy;
+        const clen = Math.hypot(cdx, cdy) || 1;
+        x += (cdx / clen) * margin;
+        y += (cdy / clen) * margin;
+      }
+      pushed = true;
+      break; // restart with updated position
+    }
+    if (!pushed) break;
+  }
+  return [x, y];
+}
+
+function buildRoadSegments() {
+  const segs = [];
+  // .road-edge polylines (edge lines along Lawrence Road)
+  document.querySelectorAll('.road-edge').forEach(el => {
+    const pts = el.getAttribute('points');
+    if (!pts) return;
+    const coords = parsePointsAttr(pts);
+    for (let i = 0; i < coords.length - 1; i++) {
+      segs.push([coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]]);
+    }
+  });
+  // Road centerline paths (Tennyson Court, Lawrence Road) — M/L segments only
+  ['tennyson-court-path', 'lawrence-road-path'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const coords = [];
+    (el.getAttribute('d') || '').trim().split(/(?=[ML])/).forEach(seg => {
+      const m = seg.trim().match(/^[ML]\s*([\d.]+)[,\s]+([\d.]+)/);
+      if (m) coords.push([+m[1], +m[2]]);
+    });
+    for (let i = 0; i < coords.length - 1; i++) {
+      segs.push([coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]]);
+    }
+  });
+  return segs;
+}
+
+function isEdgeNearRoad(ax, ay, bx, by, roadSegs, threshold) {
+  const mx = (ax + bx) / 2, my = (ay + by) / 2;
+  for (const [rax, ray, rbx, rby] of roadSegs) {
+    if (pointSegmentDist(mx, my, rax, ray, rbx, rby) < threshold) return true;
+  }
+  return false;
+}
+
+function placeTreesAlongEdge(ax, ay, bx, by, rand, cfg) {
+  const edgeLen = Math.hypot(bx - ax, by - ay);
+  if (edgeLen < 1e-6) return [];
+  const ux = (bx - ax) / edgeLen, uy = (by - ay) / edgeLen;
+  const nx = -uy, ny = ux; // perpendicular (left)
+  const results = [];
+  let t = cfg.spacing / 2;
+  while (t < edgeLen) {
+    const along = t + (rand() - 0.5) * 2 * cfg.scatterAlong;
+    const perp  = (rand() - 0.5) * 2 * cfg.scatter + cfg.insetFromEdge;
+    const x = ax + ux * along + nx * perp;
+    const y = ay + uy * along + ny * perp;
+    const scl = cfg.scale + (rand() - 0.5) * 2 * cfg.scaleVariance;
+    const variant = Math.floor(rand() * cfg.variants) + 1;
+    results.push({ x, y, scale: Math.max(0.2, scl), variant });
+    t += cfg.spacing;
+  }
+  return results;
+}
+
+async function fetchAndInjectTreeSymbols() {
+  const defs = document.querySelector('#svg-filter-defs defs');
+  if (!defs) return;
+  document.querySelectorAll('[id^="tree-symbol-"]').forEach(el => el.remove());
+  for (let i = 1; i <= TREE_CONFIG.variants; i++) {
+    try {
+      const resp = await fetch(`svg/tree-${i}.svg`, { cache: 'no-store' });
+      const text = await resp.text();
+      const doc = new DOMParser().parseFromString(text, 'image/svg+xml');
+      const sym = document.createElementNS('http://www.w3.org/2000/svg', 'symbol');
+      sym.id = `tree-symbol-${i}`;
+      sym.setAttribute('viewBox', '0 0 14 14');
+      Array.from(doc.documentElement.childNodes).forEach(n => sym.appendChild(document.importNode(n, true)));
+      defs.appendChild(sym);
+    } catch(e) { console.warn('tree symbol fetch failed', i, e); }
+  }
+}
+
+function edgeKey(ax, ay, bx, by) {
+  return ax < bx || (ax === bx && ay < by)
+    ? `${ax},${ay}|${bx},${by}`
+    : `${bx},${by}|${ax},${ay}`;
+}
+
+function loadExcludedEdges() {
+  try {
+    const v = localStorage.getItem(_LS_TREE_EDGES);
+    if (v) {
+      const parsed = JSON.parse(v);
+      // support old format (plain array) and new format ({excluded, sparse})
+      if (Array.isArray(parsed)) {
+        EXCLUDED_TREE_EDGES = new Set(parsed);
+        SPARSE_TREE_EDGES = new Set();
+      } else {
+        EXCLUDED_TREE_EDGES = new Set(parsed.excluded || []);
+        SPARSE_TREE_EDGES = new Set(parsed.sparse || []);
+      }
+    }
+  } catch(e) {}
+}
+
+function saveExcludedEdges() {
+  localStorage.setItem(_LS_TREE_EDGES, JSON.stringify({
+    excluded: [...EXCLUDED_TREE_EDGES],
+    sparse: [...SPARSE_TREE_EDGES],
+  }));
+}
+
+// Parse M/L-only SVG path d attr → consecutive edge segments [[ax,ay,bx,by], ...]
+function parseMLPathEdges(d) {
+  const coords = [];
+  (d || '').trim().split(/(?=[ML])/).forEach(seg => {
+    const m = seg.trim().match(/^[ML]\s*([\d.]+)[,\s]+([\d.]+)/);
+    if (m) coords.push([+m[1], +m[2]]);
+  });
+  const edges = [];
+  for (let i = 0; i < coords.length - 1; i++)
+    edges.push([coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]]);
+  return edges;
+}
+
+// All edges from easement paths (visible or not)
+function getEasementEdges() {
+  const edges = [];
+  document.querySelectorAll('#easement-overlay path').forEach(el => {
+    parseMLPathEdges(el.getAttribute('d')).forEach(e => edges.push(e));
+  });
+  return edges;
+}
+
+function rebuildTreeLayer() {
+  const svg = document.getElementById('map-svg');
+  if (!svg) return;
+  const old = document.getElementById('tree-layer');
+  if (old) old.remove();
+
+  const cfg = TREE_CONFIG;
+  const sparseCfg = {
+    ...cfg,
+    spacing: cfg.spacing * cfg.sparseSpacingMult,
+    scatter: cfg.scatter * cfg.sparseScatterMult,
+    scale: cfg.scale * cfg.sparseScaleMult,
+  };
+  const edgeCfg = key => SPARSE_TREE_EDGES.has(key) ? sparseCfg : cfg;
+  const rand = seededRand(cfg.seed);
+  const placements = [];
+
+  // Open space perimeter edges
+  const osEl = document.getElementById('open-space');
+  if (osEl) {
+    const coords = parsePointsAttr(osEl.getAttribute('points'));
+    for (let i = 0; i < coords.length; i++) {
+      const [ax, ay] = coords[i];
+      const [bx, by] = coords[(i + 1) % coords.length];
+      const edgeLen = Math.hypot(bx - ax, by - ay);
+      if (edgeLen < cfg.minEdgeLength) continue;
+      const key = edgeKey(ax, ay, bx, by);
+      if (EXCLUDED_TREE_EDGES.has(key)) continue;
+      placements.push(...placeTreesAlongEdge(ax, ay, bx, by, rand, edgeCfg(key)));
+    }
+  }
+
+  // All lot edges (deduplicated by key)
+  const seen = new Set();
+  document.querySelectorAll('.lot').forEach(lot => {
+    const coords = parsePointsAttr(lot.getAttribute('points') || '');
+    for (let i = 0; i < coords.length; i++) {
+      const [ax, ay] = coords[i];
+      const [bx, by] = coords[(i + 1) % coords.length];
+      const key = edgeKey(ax, ay, bx, by);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const edgeLen = Math.hypot(bx - ax, by - ay);
+      if (edgeLen < cfg.minEdgeLength) continue;
+      if (EXCLUDED_TREE_EDGES.has(key)) continue;
+      placements.push(...placeTreesAlongEdge(ax, ay, bx, by, rand, edgeCfg(key)));
+    }
+  });
+
+  // Easement path edges
+  getEasementEdges().forEach(([ax, ay, bx, by]) => {
+    const key = edgeKey(ax, ay, bx, by);
+    if (EXCLUDED_TREE_EDGES.has(key)) return;
+    if (Math.hypot(bx - ax, by - ay) < cfg.minEdgeLength) return;
+    placements.push(...placeTreesAlongEdge(ax, ay, bx, by, rand, edgeCfg(key)));
+  });
+
+  // Push trees that landed inside road polygons back to road boundary
+  const roadPolys = getRoadPolygons();
+  if (roadPolys.length > 0) {
+    for (const p of placements) {
+      [p.x, p.y] = pushOffRoad(p.x, p.y, roadPolys, cfg.roadPushMargin);
+    }
+  }
+
+  // Road proximity scale falloff
+  if (cfg.roadFalloffDist > 0) {
+    const roadSegs = buildRoadSegments();
+    const outer = cfg.roadFalloffDist;
+    const inner = Math.min(cfg.roadFalloffInner, outer);
+    const minMult = cfg.roadScaleMin;
+    for (const p of placements) {
+      let minDist = Infinity;
+      for (const [rax, ray, rbx, rby] of roadSegs) {
+        const d = pointSegmentDist(p.x, p.y, rax, ray, rbx, rby);
+        if (d < minDist) minDist = d;
+      }
+      let mult;
+      if (minDist >= outer) {
+        mult = 1;
+      } else if (minDist <= inner) {
+        mult = minMult;
+      } else {
+        mult = minMult + (1 - minMult) * (minDist - inner) / (outer - inner);
+      }
+      p.scale *= mult;
+    }
+  }
+
+  placements.sort((a, b) => a.scale - b.scale);
+
+  const ns = 'http://www.w3.org/2000/svg';
+  const g = document.createElementNS(ns, 'g');
+  g.id = 'tree-layer';
+  g.classList.add('tree-layer');
+  placements.forEach(({ x, y, scale: s, variant }) => {
+    const u = document.createElementNS(ns, 'use');
+    u.setAttribute('href', `#tree-symbol-${variant}`);
+    u.setAttribute('width', '14');
+    u.setAttribute('height', '14');
+    u.setAttribute('transform', `translate(${x},${y}) scale(${s}) translate(-7,-7)`);
+    g.appendChild(u);
+  });
+
+  const labelsG = svg.querySelector('.labels');
+  if (labelsG) svg.insertBefore(g, labelsG);
+  else svg.appendChild(g);
+  if (!treesVisible) g.style.display = 'none';
+
+  // Move plat + easement overlays above tree layer (easement below plat)
+  const afterTree = g.nextSibling;
+  ['easement-overlay', 'plat-overlay'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.parentNode === svg) svg.insertBefore(el, afterTree);
+  });
+
+  if (treeEdgePickMode) renderTreeEdgePickLayer();
+}
+
+async function injectTreeLayer() {
+  await fetchAndInjectTreeSymbols();
+  rebuildTreeLayer();
+  const svg = document.getElementById('map-svg');
+  if (!svg) return;
+  const old2 = document.getElementById('lot-highlight-layer');
+  if (old2) old2.remove();
+  const hlLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  hlLayer.id = 'lot-highlight-layer';
+  svg.appendChild(hlLayer);
+}
+
+// ── Tree edge picker ───────────────────────────────────────────────
+function getAllCandidateEdges() {
+  const cfg = TREE_CONFIG;
+  const roadSegs = buildRoadSegments();
+  const result = [];
+
+  const osEl = document.getElementById('open-space');
+  if (osEl) {
+    const coords = parsePointsAttr(osEl.getAttribute('points'));
+    for (let i = 0; i < coords.length; i++) {
+      const [ax, ay] = coords[i];
+      const [bx, by] = coords[(i + 1) % coords.length];
+      if (Math.hypot(bx - ax, by - ay) < cfg.minEdgeLength) continue;
+      const key = edgeKey(ax, ay, bx, by);
+      result.push({ key, ax, ay, bx, by,
+        nearRoad: isEdgeNearRoad(ax, ay, bx, by, roadSegs, cfg.roadProximityThreshold),
+        excluded: EXCLUDED_TREE_EDGES.has(key),
+        sparse: SPARSE_TREE_EDGES.has(key) });
+    }
+  }
+
+  const seen = new Set();
+  document.querySelectorAll('.lot').forEach(lot => {
+    const coords = parsePointsAttr(lot.getAttribute('points') || '');
+    for (let i = 0; i < coords.length; i++) {
+      const [ax, ay] = coords[i];
+      const [bx, by] = coords[(i + 1) % coords.length];
+      if (Math.hypot(bx - ax, by - ay) < cfg.minEdgeLength) continue;
+      const key = edgeKey(ax, ay, bx, by);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      result.push({ key, ax, ay, bx, by,
+        nearRoad: isEdgeNearRoad(ax, ay, bx, by, roadSegs, cfg.roadProximityThreshold),
+        excluded: EXCLUDED_TREE_EDGES.has(key),
+        sparse: SPARSE_TREE_EDGES.has(key) });
+    }
+  });
+
+  // Easement edges
+  const seenEsmt = new Set();
+  getEasementEdges().forEach(([ax, ay, bx, by]) => {
+    if (Math.hypot(bx - ax, by - ay) < cfg.minEdgeLength) return;
+    const key = edgeKey(ax, ay, bx, by);
+    if (seenEsmt.has(key)) return;
+    seenEsmt.add(key);
+    result.push({ key, ax, ay, bx, by,
+      nearRoad: isEdgeNearRoad(ax, ay, bx, by, buildRoadSegments(), cfg.roadProximityThreshold),
+      excluded: EXCLUDED_TREE_EDGES.has(key),
+      sparse: SPARSE_TREE_EDGES.has(key) });
+  });
+
+  return result;
+}
+
+function renderTreeEdgePickLayer() {
+  const svg = document.getElementById('map-svg');
+  if (!svg) return;
+  const old = document.getElementById('tree-edge-pick-layer');
+  if (old) old.remove();
+  if (!treeEdgePickMode) return;
+
+  const ns = 'http://www.w3.org/2000/svg';
+  const g = document.createElementNS(ns, 'g');
+  g.id = 'tree-edge-pick-layer';
+
+  getAllCandidateEdges().forEach(({ key, ax, ay, bx, by, nearRoad, excluded, sparse }) => {
+    const line = document.createElementNS(ns, 'line');
+    line.setAttribute('x1', ax); line.setAttribute('y1', ay);
+    line.setAttribute('x2', bx); line.setAttribute('y2', by);
+    line.setAttribute('stroke-width', '6');
+    line.setAttribute('stroke-linecap', 'round');
+    line.setAttribute('stroke-opacity', '0.82');
+
+    if (excluded) {
+      line.setAttribute('stroke', '#d63c2f');  // red — excluded
+    } else if (sparse) {
+      line.setAttribute('stroke', '#f0d020');  // yellow — sparse
+    } else if (nearRoad) {
+      line.setAttribute('stroke', '#e8a020');  // amber — near road, included (hint only)
+    } else {
+      line.setAttribute('stroke', '#2ecc71');  // green — included
+    }
+    line.addEventListener('click', ev => { ev.stopPropagation(); toggleEdgeExclusion(key); });
+    g.appendChild(line);
+  });
+
+  svg.appendChild(g); // always on top
+}
+
+function toggleEdgeExclusion(key) {
+  // Cycle: normal → sparse → excluded → normal
+  if (EXCLUDED_TREE_EDGES.has(key)) {
+    EXCLUDED_TREE_EDGES.delete(key);
+    SPARSE_TREE_EDGES.delete(key);
+  } else if (SPARSE_TREE_EDGES.has(key)) {
+    SPARSE_TREE_EDGES.delete(key);
+    EXCLUDED_TREE_EDGES.add(key);
+  } else {
+    SPARSE_TREE_EDGES.add(key);
+  }
+  saveExcludedEdges();
+  rebuildTreeLayer(); // also re-renders pick layer
+}
+
+function toggleTreeEdgePick() {
+  treeEdgePickMode = !treeEdgePickMode;
+  document.getElementById('btn-tree-edges').classList.toggle('active', treeEdgePickMode);
+  if (treeEdgePickMode) renderTreeEdgePickLayer();
+  else { const l = document.getElementById('tree-edge-pick-layer'); if (l) l.remove(); }
+}
+
+function toggleTreeOverlay() {
+  treesVisible = !treesVisible;
+  document.getElementById('btn-ov-trees').classList.toggle('active', treesVisible);
+  const layer = document.getElementById('tree-layer');
+  if (layer) layer.style.display = treesVisible ? '' : 'none';
 }
 
 // ── Populate SVG lot labels from CSV rows ─────────────────────────
@@ -1746,6 +2238,8 @@ async function loadResources() {
   });
   init();
   injectStrokeLayer();
+  loadExcludedEdges();
+  await injectTreeLayer();
   initEditHandlers();
   captureOrigLabelTransforms();
   restoreFromURL();
@@ -1767,24 +2261,49 @@ function injectStrokeLayer() {
     poly.classList.add('lot-stroke');
     g.appendChild(poly);
   });
-  svg.appendChild(g);
+  // Insert before .labels so z-order is: borders → trees → labels
+  const labelsG2 = svg.querySelector('.labels');
+  if (labelsG2) svg.insertBefore(g, labelsG2);
+  else svg.appendChild(g);
+}
+
+// Move a lot's stroke element up into the highlight layer (above trees)
+function _liftStroke(lotId) {
+  const hl = document.getElementById('lot-highlight-layer');
+  const s = document.querySelector(`#lot-stroke-layer [data-lot="${lotId}"]`);
+  if (s && hl) hl.appendChild(s);
+}
+// Move it back down into the normal stroke layer (below trees)
+function _dropStroke(lotId) {
+  const sl = document.getElementById('lot-stroke-layer');
+  const s = document.querySelector(`#lot-highlight-layer [data-lot="${lotId}"]`);
+  if (s && sl) sl.appendChild(s);
+}
+// Find a lot's stroke in either layer
+function _findStroke(lotId) {
+  return document.querySelector(`#lot-stroke-layer [data-lot="${lotId}"], #lot-highlight-layer [data-lot="${lotId}"]`);
 }
 
 function deselectAllStrokeOverlays() {
-  document.querySelectorAll('#lot-stroke-layer .lot-stroke.selected')
-    .forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('#lot-highlight-layer .lot-stroke.selected')
+    .forEach(el => {
+      el.classList.remove('selected');
+      _dropStroke(el.dataset.lot);
+    });
 }
 
 function init() {
   document.querySelectorAll('.lot').forEach(el => {
     el.addEventListener('click', onLotClick);
     el.addEventListener('mouseover', () => {
-      const s = document.querySelector(`#lot-stroke-layer [data-lot="${el.dataset.lot}"]`);
+      _liftStroke(el.dataset.lot);
+      const s = _findStroke(el.dataset.lot);
       if (s) s.classList.add('hovered');
     });
     el.addEventListener('mouseout', () => {
-      const s = document.querySelector(`#lot-stroke-layer [data-lot="${el.dataset.lot}"]`);
+      const s = _findStroke(el.dataset.lot);
       if (s) s.classList.remove('hovered');
+      if (s && !s.classList.contains('selected')) _dropStroke(el.dataset.lot);
     });
   });
   document.getElementById('map-svg').addEventListener('click', e => {
@@ -1830,7 +2349,8 @@ function selectLot(id) {
     el.classList.add('selected');
     el.parentNode.appendChild(el);
   }
-  const strokeEl = document.querySelector(`#lot-stroke-layer [data-lot="${id}"]`);
+  _liftStroke(id);
+  const strokeEl = _findStroke(id);
   if (strokeEl) strokeEl.classList.add('selected');
   const labelG = document.querySelector(`.lot-label-group[data-lot-id="${id}"]`);
   if (labelG) labelG.classList.add('label-selected');
@@ -2000,6 +2520,8 @@ function resetView() {
   if (topoFg) toggleTopoOverlay();
   // Hide easement overlay
   if (easementsVisible) toggleEasementOverlay();
+  // Show trees if hidden
+  if (!treesVisible) toggleTreeOverlay();
   // Deselect lot
   selectedId = null;
   document.querySelectorAll('.lot.selected').forEach(el => el.classList.remove('selected'));
@@ -2153,6 +2675,7 @@ function toggleEditMode() {
   svg.classList.toggle('edit-mode', editMode);
   btn.classList.toggle('active', editMode);
   panel.classList.toggle('open', editMode);
+  document.getElementById('btn-tree-edges').style.display = editMode ? '' : 'none';
   if (!editMode) {
     closeCSSEditor();
     closeElemStylePopover();
@@ -2160,6 +2683,7 @@ function toggleEditMode() {
     clearVertexAnchors();
     _epSetSelected(null);
     if (stylePickerMode) toggleStylePicker();
+    if (treeEdgePickMode) toggleTreeEdgePick();
   }
 }
 
