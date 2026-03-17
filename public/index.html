@@ -1224,7 +1224,7 @@
       <!-- 1. Smooth inner glow: warm color bleeds inward from lot edges -->
       <feFlood flood-color="var(--glow-color)" flood-opacity="var(--glow-opacity)" result="glowColor"/>
       <feComposite in="glowColor" in2="SourceAlpha" operator="out" result="outerFill"/>
-      <feGaussianBlur in="outerFill" stdDeviation="10" result="blurredOuter"/>
+      <feGaussianBlur in="outerFill" stdDeviation="15" result="blurredOuter"/>
       <feComposite in="blurredOuter" in2="SourceAlpha" operator="in" result="innerGlow"/>
       <!-- 2. Fractal grain: desaturated, then contrast-compressed toward 50% gray
                so soft-light blending stays subtle (slope=0.25 → ±12.5% deviation from neutral) -->
@@ -1244,7 +1244,7 @@
       <feComposite in="grainAlpha" in2="innerGlow" operator="arithmetic"
                    k1="0" k2="1" k3="2" k4="-0.7" result="combined"/>
       <feComponentTransfer in="combined" result="densityMap">
-        <feFuncA type="linear" slope="100"/>
+        <feFuncA type="linear" slope="2"/>
       </feComponentTransfer>
       <!-- 5. Clip the soft-light colored glow to the thresholded dot positions -->
       <feComposite in="texturedGlow" in2="densityMap" operator="in" result="grainyGlow"/>
@@ -1829,39 +1829,13 @@ function syncLegendPanelVisibility() {
 }
 
 function createBuilderGlowFilters() {
-  const ns = 'http://www.w3.org/2000/svg';
   const defs = document.querySelector('#svg-filter-defs defs');
+  const base = document.getElementById('grainy-inner-glow');
   document.querySelectorAll('[id^="grainy-glow-builder-"]').forEach(el => el.remove());
   BUILDER_DATA.forEach((b, idx) => {
-    const f = document.createElementNS(ns, 'filter');
+    const f = base.cloneNode(true);
     f.setAttribute('id', `grainy-glow-builder-${idx}`);
-    f.setAttribute('x', '-20%'); f.setAttribute('y', '-20%');
-    f.setAttribute('width', '140%'); f.setAttribute('height', '140%');
-    f.setAttribute('color-interpolation-filters', 'sRGB');
-    f.innerHTML = `
-      <feFlood flood-color="${b.color}" flood-opacity=".6" result="glowColor"/>
-      <feComposite in="glowColor" in2="SourceAlpha" operator="out" result="outerFill"/>
-      <feGaussianBlur in="outerFill" stdDeviation="10" result="blurredOuter"/>
-      <feComposite in="blurredOuter" in2="SourceAlpha" operator="in" result="innerGlow"/>
-      <feTurbulence type="fractalNoise" baseFrequency="3" numOctaves="1" stitchTiles="stitch" result="noise"/>
-      <feColorMatrix in="noise" type="saturate" values="0" result="grainRaw"/>
-      <feComponentTransfer in="grainRaw" result="grain">
-        <feFuncR type="linear" slope="0.25" intercept="0.375"/>
-        <feFuncG type="linear" slope="0.25" intercept="0.375"/>
-        <feFuncB type="linear" slope="0.25" intercept="0.375"/>
-      </feComponentTransfer>
-      <feBlend in="innerGlow" in2="grain" mode="soft-light" result="texturedGlow"/>
-      <feColorMatrix in="grainRaw" type="luminanceToAlpha" result="grainAlpha"/>
-      <feComposite in="grainAlpha" in2="innerGlow" operator="arithmetic"
-                   k1="0" k2="1" k3="2" k4="-0.7" result="combined"/>
-      <feComponentTransfer in="combined" result="densityMap">
-        <feFuncA type="linear" slope="100"/>
-      </feComponentTransfer>
-      <feComposite in="texturedGlow" in2="densityMap" operator="in" result="grainyGlow"/>
-      <feMerge>
-        <feMergeNode in="SourceGraphic"/>
-        <feMergeNode in="grainyGlow"/>
-      </feMerge>`;
+    f.querySelector('feFlood').setAttribute('flood-color', b.color);
     defs.appendChild(f);
   });
 }

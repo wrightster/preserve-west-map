@@ -176,7 +176,7 @@ dominant-baseline: central;
 /* ── Grainy inner glow parameters ──────────────────────────────────── */
 :root {
   --glow-color:   #6a8a52;  /* flood-color for the default lot inner glow */
-  --glow-opacity: 0.5;      /* flood-opacity for the default lot inner glow */
+  --glow-opacity: 1;        /* flood-opacity for all lot inner glows */
 }
 
 /* ── Builder overlays ──────────────────────────────────────────────── */
