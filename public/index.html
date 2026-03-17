@@ -1217,12 +1217,12 @@
 
 <!-- Shared SVG filter definitions — referenced by lot polygons in the injected map SVG.
      Kept here (not in tennyson-map.svg) so visual-effect logic lives with the HTML/JS. -->
-<svg id="svg-filter-defs" style="display:none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+<svg id="svg-filter-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <!-- Grainy inner glow: soft-light grain overlaid on smooth blurry gradient -->
     <filter id="grainy-inner-glow" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
       <!-- 1. Smooth inner glow: warm color bleeds inward from lot edges -->
-      <feFlood flood-color="#6a8a52" flood-opacity=".5" result="glowColor"/>
+      <feFlood flood-color="var(--glow-color)" flood-opacity="var(--glow-opacity)" result="glowColor"/>
       <feComposite in="glowColor" in2="SourceAlpha" operator="out" result="outerFill"/>
       <feGaussianBlur in="outerFill" stdDeviation="10" result="blurredOuter"/>
       <feComposite in="blurredOuter" in2="SourceAlpha" operator="in" result="innerGlow"/>
@@ -1683,6 +1683,7 @@ async function loadResources() {
   injectStrokeLayer();
   initEditHandlers();
   captureOrigLabelTransforms();
+  restoreFromURL();
 }
 
 function injectStrokeLayer() {
@@ -1742,7 +1743,6 @@ function init() {
   // Initialize status overlay (on by default)
   document.getElementById('status-list').classList.add('open');
   syncLegendPanelVisibility();
-  restoreFromURL();
 }
 
 function onLotClick(e) {

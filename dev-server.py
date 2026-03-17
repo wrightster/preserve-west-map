@@ -2,13 +2,14 @@
 """
 Development server for tennyson_map.
 
-Serves static files and accepts POST /save requests to write files directly
-to disk — enabling the "Save to Files" button in the map's edit mode.
+Serves static files from public/ and accepts POST /save requests to write
+files directly to disk — enabling the "Save to Files" button in the map's
+edit mode.
 
 Usage:
     python dev-server.py [port]     (default port: 8765)
 
-Then open: http://localhost:8765/tennyson-map.html
+Then open: http://localhost:8765/
 """
 
 import http.server
@@ -18,14 +19,15 @@ import sys
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8765
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PUBLIC_DIR = os.path.join(BASE_DIR, 'public')
 
-# Files the client is allowed to write (whitelist for safety)
+# Files the client is allowed to write (relative to public/)
 ALLOWED_FILES = {'tennyson-lots.csv', 'tennyson-map.svg', 'map-styles.css'}
 
 
 class DevHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=BASE_DIR, **kwargs)
+        super().__init__(*args, directory=PUBLIC_DIR, **kwargs)
 
     def do_POST(self):
         if self.path != '/save':
@@ -44,7 +46,7 @@ class DevHandler(http.server.SimpleHTTPRequestHandler):
                 self._respond(403, {'ok': False, 'error': f'Not allowed: {filename}'})
                 return
 
-            filepath = os.path.join(BASE_DIR, filename)
+            filepath = os.path.join(PUBLIC_DIR, filename)
             with open(filepath, 'w', encoding='utf-8', newline='') as f:
                 f.write(content)
 
@@ -77,10 +79,10 @@ class DevHandler(http.server.SimpleHTTPRequestHandler):
 
 
 if __name__ == '__main__':
-    os.chdir(BASE_DIR)
+    os.chdir(PUBLIC_DIR)
     print(f'Tennyson Map dev server')
     print(f'  Serving:  http://localhost:{PORT}/')
-    print(f'  Root dir: {BASE_DIR}')
+    print(f'  Root dir: {PUBLIC_DIR}')
     print(f'  POST /save writes: {", ".join(sorted(ALLOWED_FILES))}')
     print()
     with http.server.HTTPServer(('', PORT), DevHandler) as httpd:
