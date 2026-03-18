@@ -132,8 +132,26 @@ dominant-baseline: central;
 .esmt-open  { fill: none; }
 .esmt-closed { fill: darkorange; fill-opacity: 0.25; }
 
+/* ── Ghost lots (future phases) ────────────────────────────────────── */
+.ghost-lot-line {
+  fill: none;
+  stroke: #b0b8a0;
+  stroke-width: 1.2;
+  stroke-dasharray: 6 4;
+  opacity: 0.55;
+  pointer-events: none;
+}
+.ghost-lot-outline {
+  fill: none;
+  stroke: #a0b090;
+  stroke-width: 1.5;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 /* ── Open space ────────────────────────────────────────────────────── */
-.open-space   { fill: #7a9e62; opacity: 0.5; }
+.open-space,
+.open-space-poly { fill: #7a9e62; opacity: 0.5; }
 #topo-fill    { color: #2d5a1e; }
 #open-space-border {
   fill: none;

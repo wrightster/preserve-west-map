@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
 """
-Extract Preserve West Phase 1 lot polygons from 8x11 marketing SVG.
-Associates lot numbers via CAD SVG label centroids + affine transform.
-Outputs public/preserve-west-map.svg ready for the interactive web map.
+Extract Preserve West Phase 1 interactive map from 8x11 marketing SVG + CAD.
+
+Extracts:
+  - Phase 1 lot polygons (48 lots, numbered 1-48)
+  - Open space polygon (st3 dark green)
+  - Water/stream polygons from 8x11 SVG (st10 cyan)
+  - Ghost lot outlines from 8x11 SVG (st7/st27 lime)
+  - Stream polylines from CAD (V-STREAM-TOB-SURVEY, V-STREAM-SURVEY)
+  - Ghost lot boundary lines from CAD (C-PROP-5, C-PROP-8, all phases)
+  - Road labels (internal + external, static SVG text)
+  - Area labels (OPEN SPACE x2, HOA)
 
 Usage:
   python scripts/extract_preserve_west.py            # normal run
@@ -12,52 +20,78 @@ import xml.etree.ElementTree as ET
 import re, math, sys
 from pathlib import Path
 
-# ── paths ────────────────────────────────────────────────────────────────────
-ROOT       = Path(__file__).parent.parent
-SVG_8X11   = ROOT / "preserve west" / "Preserve West Map 8x11.svg"
-SVG_CAD    = ROOT / "preserve west" / "WEMC 11-20-24.svg"
-OUTPUT     = ROOT / "public" / "preserve-west-map.svg"
+# ── paths ─────────────────────────────────────────────────────────────────────
+ROOT     = Path(__file__).parent.parent
+SVG_8X11 = ROOT / "preserve west" / "Preserve West Map 8x11.svg"
+SVG_CAD  = ROOT / "preserve west" / "WEMC 11-20-24.svg"
+OUTPUT   = ROOT / "public" / "preserve-west-map.svg"
 
 DEBUG = "--debug" in sys.argv
 
-# ── fill colours that indicate a lot polygon ─────────────────────────────────
-LOT_FILLS  = {"#3fc30b", "#007a06"}   # st4/st17 (bright green), st8 (med green)
-OPEN_FILLS = {"#338504"}              # st3 (dark green open space)
+# ── output scale ──────────────────────────────────────────────────────────────
+OUTPUT_SCALE = 4   # multiply all 8x11 coordinates by this factor
 
-# ── CAD -> sequential-1-48 lot-number mapping ─────────────────────────────────
-# Derived from visual comparison of street-names PDF (CAD plat numbers)
-# vs marketing-map PDF (sequential 1-48 display numbers).
-# Layout (street-names PDF, 9-17-2025):
-#   Beckett Boulevard right column (top->bottom): 180,179,178,177,176,175,174,173,172,171,170,169,168
-#   Joyce Row cul-de-sac:  1,2,3,4,5,6,7,8,9,10,11,12,13,14
-#   Wilde Ridge cul-de-sac: 15,16,17,18,19,20,21,22,23,24,25,26,27
-#   Swift Landing (bottom):  160,161,162,163,164,165,166,167
-#
-# Marketing map sequential numbering (read from 8x11 PDF image):
-#   Beckett Blvd (top->bottom): seq 20,19,18,17,16,15,14,13,12,11,10,9,8,7
-#   Joyce Row:                  seq 6,5,4,3,2,1 (bottom half), 21,22,23,24,25,26 (upper)
-#   Wilde Ridge:                seq 27,28,29,30,31,32,33,34,35
-#   Swift Landing (bottom):     seq 36,37,38,39,40,41,42,43,44,45,46,47,48
-#
-# NOTE: this mapping is approximate; verified by visual review after script run.
+# ── fill colours ──────────────────────────────────────────────────────────────
+LOT_FILLS   = {"#3fc30b", "#007a06"}   # Phase 1 lot fills (bright + med green)
+OPEN_FILLS  = {"#338504"}              # Open space (dark green)
+GHOST_FILLS = {"lime"}                 # Future-phase lot outlines (lime, opacity 0.5)
+WATER_CLASS = "st10"                   # #00bfff cyan water polygons
+
+# ── 8x11 SVG coordinate bounds (for clipping CAD ghost lines) ─────────────────
+SVG_BOUNDS = (0, 0, 595, 842)   # (xmin, ymin, xmax, ymax)
+GHOST_MARGIN = 80               # extra units beyond SVG bounds to allow
+
+# ── CAD -> sequential lot-number mapping ──────────────────────────────────────
+# CAD plat numbers (WEMC 11-20-24.svg C-PROP-LOTNUM-PHASE_1) -> marketing seq 1-48.
+# Street layout (per Sept-2025 road-names doc):
+#   Beckett Boulevard (right column, top->bottom): CAD 180..168  -> seq 20..7
+#   Joyce Row lower cul-de-sac:                   CAD 1..6      -> seq 1..6
+#   Joyce Row upper cul-de-sac:                   CAD 7..14     -> seq 21..28
+#   Wilde Ridge cul-de-sac:                       CAD 15..27    -> seq 29..41
+#   Swift Landing (bottom row):                   CAD 160..167  -> seq 42..49 (8 lots)
+# NOTE: mapping is approximate; verify visually and update as needed.
 CAD_TO_SEQ = {
-    # Beckett Boulevard (CAD 168-180 -> seq 7-20)
-    168: 7,  169: 8,  170: 9,  171: 10, 172: 11,
-    173: 12, 174: 13, 175: 14, 176: 15, 177: 16,
-    178: 17, 179: 18, 180: 19,
+    # Beckett Boulevard (CAD 168-180, top->bottom = seq 20->7)
+    180: 20, 179: 19, 178: 18, 177: 17, 176: 16,
+    175: 15, 174: 14, 173: 13, 172: 12, 171: 11,
+    170: 10, 169:  9, 168:  7,
     # Joyce Row lower (CAD 1-6 -> seq 1-6)
     1: 1,  2: 2,  3: 3,  4: 4,  5: 5,  6: 6,
-    # Joyce Row upper (CAD 7-14 -> seq 20-27 roughly; needs visual check)
-    7: 20,  8: 21,  9: 22,  10: 23, 11: 24,
-    12: 25, 13: 26, 14: 27,
-    # Wilde Ridge (CAD 15-27 -> seq 28-40 roughly)
-    15: 28, 16: 29, 17: 30, 18: 31, 19: 32,
-    20: 33, 21: 34, 22: 35, 23: 36, 24: 37,
-    25: 38, 26: 39, 27: 40,
-    # Swift Landing (CAD 160-167 -> seq 41-48)
-    160: 41, 161: 42, 162: 43, 163: 44,
-    164: 45, 165: 46, 166: 47, 167: 48,
+    # Joyce Row upper (CAD 7-14 -> seq 21-28)
+    7: 21,  8: 22,  9: 23, 10: 24, 11: 25,
+    12: 26, 13: 27, 14: 28,
+    # Wilde Ridge (CAD 15-27 -> seq 29-41)
+    15: 29, 16: 30, 17: 31, 18: 32, 19: 33,
+    20: 34, 21: 35, 22: 36, 23: 37, 24: 38,
+    25: 39, 26: 40, 27: 41,
+    # Swift Landing (CAD 160-167 -> seq 42-48 + lot 8 on Beckett foot)
+    160: 42, 161: 43, 162: 44, 163: 45,
+    164: 46, 165: 47, 166: 48, 167: 8,
 }
+
+# ── road labels ───────────────────────────────────────────────────────────────
+# CAD positions sourced from B-STREET_NAME-PHASE_1 (internal) with updated names,
+# and approximate boundary positions (external roads).
+# Format: (display_text, cad_x, cad_y, rotation_deg)
+ROAD_LABELS = [
+    # Internal Phase 1 roads (old CAD names -> updated 2025 names)
+    ("BECKETT BOULEVARD", 3159.9, 3444.5,  -10.8),
+    ("JOYCE ROW",         3025.6, 3342.0, -101.2),
+    ("WILDE RIDGE",       2789.0, 3101.6,  -85.6),
+    ("SWIFT LANDING",     2510.1, 3362.2,  -23.9),
+    # External roads (approximate positions along Phase 1 boundary)
+    ("BRUCE GARNER RD",   2600.0, 2395.0,    0.0),
+    ("GRAHAM SHERRON RD", 3590.0, 3050.0,  -90.0),
+    ("ALLENWOOD RD",      2450.0, 3710.0,    5.0),
+]
+
+# ── area labels (from V-OS-TXT-PHASE_1 / HOA CAD label) ──────────────────────
+# Format: (display_text, cad_x, cad_y, rotation_deg)
+AREA_LABELS = [
+    ("OPEN SPACE", 3023.8, 2904.1, 63.5),
+    ("OPEN SPACE", 2584.0, 3583.7, 63.5),
+    ("HOA",        3568.4, 3360.8, 63.5),
+]
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 def parse_points(s):
@@ -80,24 +114,25 @@ def polygon_area(pts):
         a += pts[i][0]*pts[j][1] - pts[j][0]*pts[i][1]
     return abs(a) / 2
 
-def point_in_polygon(px, py, poly):
-    inside = False
-    j = len(poly) - 1
-    for i, (xi, yi) in enumerate(poly):
-        xj, yj = poly[j]
-        if ((yi > py) != (yj > py)) and (px < (xj-xi)*(py-yi)/(yj-yi) + xi):
-            inside = not inside
-        j = i
-    return inside
-
 def dist(a, b):
     return math.hypot(a[0]-b[0], a[1]-b[1])
 
-def format_pts(pts):
+def fmt_pts(pts):
     return " ".join(f"{x:.2f},{y:.2f}" for x, y in pts)
 
+def fmt_poly_pts(pts):
+    return " ".join(f"{x:.2f} {y:.2f}" for x, y in pts)
+
+def in_svg_bounds(pts, margin=GHOST_MARGIN):
+    xmin, ymin, xmax, ymax = SVG_BOUNDS
+    return all(
+        xmin - margin <= x <= xmax + margin and
+        ymin - margin <= y <= ymax + margin
+        for x, y in pts
+    )
+
 # ── step 1: parse 8x11 SVG ────────────────────────────────────────────────────
-print("Parsing 8x11 SVG …")
+print("Parsing 8x11 SVG ...")
 tree8 = ET.parse(SVG_8X11)
 root8 = tree8.getroot()
 ns = "http://www.w3.org/2000/svg"
@@ -107,8 +142,7 @@ style_text = ""
 for el in root8.iter("{%s}style" % ns):
     style_text += el.text or ""
 
-fill_map = {}  # classname -> fill colour
-# parse blocks like: .st4, .st17 { fill: #3fc30b; }
+fill_map = {}
 for block in re.finditer(r'([^{}]+)\{([^}]+)\}', style_text, re.DOTALL):
     selectors, body = block.group(1), block.group(2)
     fill_m = re.search(r'fill\s*:\s*(#[0-9a-fA-F]{3,6}|[a-z]+)', body)
@@ -125,11 +159,13 @@ def get_fill(cls_str):
             return fill_map[c]
     return None
 
-lot_polys   = []   # [(pts, fill)]
-open_polys  = []   # [pts]
+lot_polys   = []   # [(pts, fill)]  -- Phase 1 lots
+open_polys  = []   # [pts]          -- open space
+ghost_polys = []   # [pts]          -- lime future-phase outlines
+water_polys = []   # [pts]          -- st10 water polygons
 
 for el in root8.iter("{%s}polygon" % ns):
-    cls = el.get("class", "")
+    cls  = el.get("class", "")
     fill = get_fill(cls)
     pts_str = el.get("points", "")
     if not pts_str:
@@ -137,22 +173,28 @@ for el in root8.iter("{%s}polygon" % ns):
     pts = parse_points(pts_str)
     if len(pts) < 3:
         continue
+
     if fill in LOT_FILLS:
         a = polygon_area(pts)
-        if 50 < a < 10000:   # ignore tiny shapes and the large background polygon
+        if 50 < a < 10000:
             lot_polys.append((pts, fill))
     elif fill in OPEN_FILLS:
         open_polys.append(pts)
+    elif fill in GHOST_FILLS:
+        ghost_polys.append(pts)
+    elif WATER_CLASS in cls.split():
+        water_polys.append(pts)
 
-print(f"  Found {len(lot_polys)} lot polygons, {len(open_polys)} open-space polygon(s)")
+print(f"  {len(lot_polys)} lot polygons, {len(open_polys)} open-space, "
+      f"{len(ghost_polys)} ghost outlines, {len(water_polys)} water polygons")
 
-# ── step 2: parse CAD SVG — lot label centroids ───────────────────────────────
-print("Parsing CAD SVG …")
+# ── step 2: parse CAD SVG ─────────────────────────────────────────────────────
+print("Parsing CAD SVG ...")
 treeC = ET.parse(SVG_CAD)
 rootC = treeC.getroot()
 
-cad_labels = {}   # lot_number -> (cx, cy) in CAD 4096 space
-
+# Phase 1 lot label centroids
+cad_labels = {}
 for g in rootC.iter("{%s}g" % ns):
     gid = g.get("id", "")
     if "LOTNUM" not in gid or "PHASE_1" not in gid:
@@ -167,14 +209,51 @@ for g in rootC.iter("{%s}g" % ns):
                 cx, cy = float(tm.group(1)), float(tm.group(2))
                 cad_labels[lot_num] = (cx, cy)
 
-print(f"  Found {len(cad_labels)} CAD lot labels: {sorted(cad_labels.keys())}")
+print(f"  {len(cad_labels)} CAD lot labels: {sorted(cad_labels.keys())}")
+
+# Stream polylines (V-STREAM-TOB-SURVEY, V-STREAM-SURVEY)
+# Children are wrapped in <g id="LWPOLYLINE..."> sub-groups, so use .iter()
+cad_streams = []   # [[(cad_x, cad_y)]]
+for g in rootC.iter("{%s}g" % ns):
+    if g.get("id", "") in ("V-STREAM-TOB-SURVEY", "V-STREAM-SURVEY"):
+        for el in g.iter():
+            tag = el.tag.split("}")[-1]
+            if tag == "polyline":
+                pts_str = el.get("points", "")
+                if pts_str:
+                    pts = parse_points(pts_str)
+                    if len(pts) >= 2:
+                        cad_streams.append(pts)
+print(f"  {len(cad_streams)} CAD stream polylines")
+
+# Ghost lot boundary lines from all phases (C-PROP-5, C-PROP-8)
+# Same nested structure: <g id="LWPOLYLINE..."><line/></g>
+cad_ghost = []   # [[(cad_x, cad_y)]]
+for g in rootC.iter("{%s}g" % ns):
+    if g.get("id", "") not in ("C-PROP-5", "C-PROP-8"):
+        continue
+    for el in g.iter():
+        tag = el.tag.split("}")[-1]
+        if tag == "line":
+            try:
+                seg = [(float(el.get("x1", 0)), float(el.get("y1", 0))),
+                       (float(el.get("x2", 0)), float(el.get("y2", 0)))]
+                cad_ghost.append(seg)
+            except (ValueError, TypeError):
+                pass
+        elif tag == "polyline":
+            pts_str = el.get("points", "")
+            if pts_str:
+                pts = parse_points(pts_str)
+                if len(pts) >= 2:
+                    cad_ghost.append(pts)
+print(f"  {len(cad_ghost)} CAD ghost lot line segments")
 
 # ── step 3: affine transform CAD -> 8x11 ──────────────────────────────────────
-# Use bounding-box alignment of the Phase-1 lot-label point clouds.
 if cad_labels:
-    cad_pts  = list(cad_labels.values())
-    lot_cxs  = [centroid(p)[0] for p,_ in lot_polys]
-    lot_cys  = [centroid(p)[1] for p,_ in lot_polys]
+    cad_pts = list(cad_labels.values())
+    lot_cxs = [centroid(p)[0] for p, _ in lot_polys]
+    lot_cys = [centroid(p)[1] for p, _ in lot_polys]
 
     cad_x0, cad_x1 = min(p[0] for p in cad_pts), max(p[0] for p in cad_pts)
     cad_y0, cad_y1 = min(p[1] for p in cad_pts), max(p[1] for p in cad_pts)
@@ -190,12 +269,10 @@ if cad_labels:
         return cx * sx + tx, cy * sy + ty
 
     if DEBUG:
-        print(f"\n  CAD->8x11 transform: sx={sx:.4f} sy={sy:.4f} tx={tx:.2f} ty={ty:.2f}")
+        print(f"\n  CAD->8x11: sx={sx:.4f} sy={sy:.4f} tx={tx:.2f} ty={ty:.2f}")
 
+    # Bipartite greedy matching
     poly_centroids = [centroid(pts) for pts, _ in lot_polys]
-
-    # Bipartite greedy matching: build all (distance, cad_lot, poly_idx) pairs,
-    # sort by distance, assign greedily (closest unmatched pair wins).
     pairs = []
     for lot_num, (cx, cy) in cad_labels.items():
         mapped = cad_to_8x11(cx, cy)
@@ -203,7 +280,7 @@ if cad_labels:
             pairs.append((dist(mapped, pc), lot_num, i))
     pairs.sort()
 
-    lot_num_assignments = {}   # polygon_index -> cad_lot_number
+    lot_num_assignments = {}
     assigned_lots  = set()
     assigned_polys = set()
     for d, lot_num, pi in pairs:
@@ -213,66 +290,127 @@ if cad_labels:
             assigned_polys.add(pi)
 
     if DEBUG:
-        print("\n  Polygon -> CAD lot number assignments:")
+        print("\n  Polygon -> CAD lot assignments:")
         for pi, ln in sorted(lot_num_assignments.items(), key=lambda x: x[1]):
             cx, cy = poly_centroids[pi]
             seq = CAD_TO_SEQ.get(ln, f"?{ln}")
-            print(f"    poly[{pi:2d}] centroid=({cx:.1f},{cy:.1f})  CAD={ln:3d}  seq={seq}")
+            print(f"    poly[{pi:2d}] ({cx:.1f},{cy:.1f})  CAD={ln:3d}  seq={seq}")
 else:
-    print("  WARNING: No CAD labels found — assigning lot numbers spatially")
+    print("  WARNING: no CAD labels -- lot numbers unassigned")
     lot_num_assignments = {}
 
-# ── step 4: compute output viewBox ───────────────────────────────────────────
-OUTPUT_SCALE = 4   # multiply all coordinates by this factor
+    def cad_to_8x11(cx, cy):
+        return cx, cy
 
+# ── step 4: scale all 8x11 coordinates by OUTPUT_SCALE ───────────────────────
 def scale_pts(pts):
     return [(x * OUTPUT_SCALE, y * OUTPUT_SCALE) for x, y in pts]
 
 lot_polys   = [(scale_pts(pts), fill) for pts, fill in lot_polys]
 open_polys  = [scale_pts(pts) for pts in open_polys]
+ghost_polys = [scale_pts(pts) for pts in ghost_polys]
+water_polys = [scale_pts(pts) for pts in water_polys]
 
-all_pts = [p for pts, _ in lot_polys for p in pts] + \
-          [p for pts    in open_polys for p in pts]
+# Transform CAD streams -> 8x11 -> output scale (filter to SVG bounds)
+stream_lines_out = []
+for seg in cad_streams:
+    mapped = [cad_to_8x11(x, y) for x, y in seg]
+    if in_svg_bounds(mapped):
+        stream_lines_out.append([(x * OUTPUT_SCALE, y * OUTPUT_SCALE)
+                                 for x, y in mapped])
+
+# Transform CAD ghost lines -> 8x11 -> output scale (filter to SVG bounds)
+ghost_lines_out = []
+for seg in cad_ghost:
+    mapped = [cad_to_8x11(x, y) for x, y in seg]
+    if in_svg_bounds(mapped):
+        ghost_lines_out.append([(x * OUTPUT_SCALE, y * OUTPUT_SCALE)
+                                for x, y in mapped])
+
+print(f"  {len(stream_lines_out)} stream lines after filtering")
+print(f"  {len(ghost_lines_out)} ghost lot lines after filtering")
+
+# ── step 5: compute output viewBox ───────────────────────────────────────────
+all_pts = (
+    [p for pts, _ in lot_polys for p in pts] +
+    [p for pts in open_polys   for p in pts] +
+    [p for pts in water_polys  for p in pts] +
+    [p for pts in ghost_polys  for p in pts]
+)
 if not all_pts:
     print("ERROR: no geometry extracted"); sys.exit(1)
 
 x0, y0, x1, y1 = bbox(all_pts)
-pad = 40
+pad = 60
 vx, vy = x0 - pad, y0 - pad
 vw, vh = (x1 - x0) + 2*pad, (y1 - y0) + 2*pad
 
 print(f"\n  Output viewBox: {vx:.1f} {vy:.1f} {vw:.1f} {vh:.1f}")
 
-# ── step 5: build output SVG ─────────────────────────────────────────────────
-print("Building output SVG …")
+# ── step 6: build output SVG ─────────────────────────────────────────────────
+print("Building output SVG ...")
 
-lines = []
-lines.append('<?xml version="1.0" encoding="UTF-8"?>')
-lines.append(f'<svg id="map-svg" xmlns="http://www.w3.org/2000/svg" viewBox="{vx:.2f} {vy:.2f} {vw:.2f} {vh:.2f}" preserveAspectRatio="xMidYMid meet">')
-lines.append('  <!-- Preserve West Phase One — generated by scripts/extract_preserve_west.py -->')
-lines.append('')
+out = []
+out.append('<?xml version="1.0" encoding="UTF-8"?>')
+out.append(f'<svg id="map-svg" xmlns="http://www.w3.org/2000/svg" '
+           f'viewBox="{vx:.2f} {vy:.2f} {vw:.2f} {vh:.2f}" '
+           f'preserveAspectRatio="xMidYMid meet">')
+out.append('  <!-- Preserve West Phase One -- generated by scripts/extract_preserve_west.py -->')
+out.append('')
 
-# Open space
+# ── ghost lots (future phases, bottom layer) ──────────────────────────────────
+out.append('  <!-- Ghost lots: future phases -->')
+out.append('  <g id="ghost-lots">')
+# CAD all-phase property lines (line segments)
+for seg in ghost_lines_out:
+    if len(seg) == 2:
+        x1s, y1s = seg[0]; x2s, y2s = seg[1]
+        out.append(f'    <line class="ghost-lot-line"'
+                   f' x1="{x1s:.1f}" y1="{y1s:.1f}"'
+                   f' x2="{x2s:.1f}" y2="{y2s:.1f}"/>')
+    elif len(seg) > 2:
+        out.append(f'    <polyline class="ghost-lot-line" points="{fmt_poly_pts(seg)}"/>')
+# 8x11 SVG lime polygon outlines of visible future-phase lots
+for pts in ghost_polys:
+    out.append(f'    <polygon class="ghost-lot-outline" points="{fmt_pts(pts)}"/>')
+out.append('  </g>')
+out.append('')
+
+# ── water polygons from 8x11 SVG ─────────────────────────────────────────────
+if water_polys:
+    out.append('  <!-- Water / stream fill (from 8x11 SVG st10) -->')
+    out.append('  <g id="water">')
+    for pts in water_polys:
+        out.append(f'    <polygon class="stream-buffer" points="{fmt_pts(pts)}"/>')
+    out.append('  </g>')
+    out.append('')
+
+# ── CAD stream centerlines ────────────────────────────────────────────────────
+if stream_lines_out:
+    out.append('  <!-- Stream top-of-bank (from CAD V-STREAM-TOB-SURVEY) -->')
+    out.append('  <g id="streams">')
+    for pts in stream_lines_out:
+        out.append(f'    <polyline class="stream-tob" points="{fmt_poly_pts(pts)}"/>')
+    out.append('  </g>')
+    out.append('')
+
+# ── open space ────────────────────────────────────────────────────────────────
 if open_polys:
-    lines.append('  <!-- ═══ open space ═══ -->')
-    # id="open-space" must be on the polygon itself (tree-layer JS uses getElementById + getAttribute('points'))
+    out.append('  <!-- Open space -->')
     for i, pts in enumerate(open_polys):
         oid = "open-space" if i == 0 else f"open-space-{i}"
-        lines.append(f'  <polygon id="{oid}" class="open-space-poly" points="{format_pts(pts)}"/>')
-    lines.append('')
+        out.append(f'  <polygon id="{oid}" class="open-space-poly" points="{fmt_pts(pts)}"/>')
+    out.append('')
 
-# Lot polygons
-lines.append('  <!-- ═══ lots ═══ -->')
-lines.append('  <g id="lots">')
+# ── Phase 1 lots ──────────────────────────────────────────────────────────────
+out.append('  <!-- Phase 1 lots -->')
+out.append('  <g id="lots">')
 
-# Build final lot list with sequential numbers
 lots_out = []
 for i, (pts, fill) in enumerate(lot_polys):
     cad_num = lot_num_assignments.get(i)
     seq_num = CAD_TO_SEQ.get(cad_num) if cad_num is not None else None
     if seq_num is None:
-        # unmatched — assign to next available number
-        used = {v for v in CAD_TO_SEQ.values()}
         assigned = {CAD_TO_SEQ.get(lot_num_assignments.get(j))
                     for j in range(len(lot_polys)) if j != i
                     if lot_num_assignments.get(j) in CAD_TO_SEQ}
@@ -280,28 +418,50 @@ for i, (pts, fill) in enumerate(lot_polys):
             if n not in assigned:
                 seq_num = n
                 break
-        print(f"  WARNING: polygon[{i}] (CAD {cad_num}) not in mapping table -> assigned seq {seq_num}")
+        print(f"  WARNING: polygon[{i}] CAD={cad_num} -> fallback seq {seq_num}")
     lots_out.append((seq_num, pts))
 
-# Sort by sequential number and emit
-# id="lot-N" is required by getElementById('lot-'+id) in JS
-# class="lot" is required by map-styles.css (.lot.available / .lot.sold / .lot.reserved)
 for seq_num, pts in sorted(lots_out, key=lambda x: (x[0] or 999)):
-    lines.append(f'    <polygon id="lot-{seq_num}" class="lot" data-lot="{seq_num}" '
-                 f'data-lot-id="lot-{seq_num}" points="{format_pts(pts)}"/>')
+    out.append(f'    <polygon id="lot-{seq_num}" class="lot"'
+               f' data-lot="{seq_num}" data-lot-id="lot-{seq_num}"'
+               f' points="{fmt_pts(pts)}"/>')
+out.append('  </g>')
+out.append('')
 
-lines.append('  </g>')
-lines.append('')
+# ── road labels ───────────────────────────────────────────────────────────────
+out.append('  <!-- Road labels -->')
+out.append('  <g id="road-labels">')
+for text, cx, cy, rot in ROAD_LABELS:
+    ox, oy = cad_to_8x11(cx, cy)
+    ox *= OUTPUT_SCALE
+    oy *= OUTPUT_SCALE
+    out.append(f'    <text class="road-label"'
+               f' transform="translate({ox:.1f} {oy:.1f}) rotate({rot:.1f})"'
+               f' text-anchor="middle">{text}</text>')
+out.append('  </g>')
+out.append('')
 
-# Empty labels group — JS populateLabels() will create <g class="lot-label-group"> children here
-lines.append('  <!-- lot labels: JS populateLabels() appends .lot-label-group children here -->')
-lines.append('  <g class="labels"></g>')
-lines.append('')
+# ── area labels (Open Space, HOA) ─────────────────────────────────────────────
+out.append('  <!-- Area labels -->')
+out.append('  <g id="area-labels">')
+for text, cx, cy, rot in AREA_LABELS:
+    ox, oy = cad_to_8x11(cx, cy)
+    ox *= OUTPUT_SCALE
+    oy *= OUTPUT_SCALE
+    out.append(f'    <text class="area-label"'
+               f' transform="translate({ox:.1f} {oy:.1f}) rotate({rot:.1f})"'
+               f' text-anchor="middle">{text}</text>')
+out.append('  </g>')
+out.append('')
 
-lines.append('</svg>')
+# ── lot labels (JS populates) ─────────────────────────────────────────────────
+out.append('  <!-- lot labels: JS populateLabels() appends .lot-label-group here -->')
+out.append('  <g class="labels"></g>')
+out.append('')
+out.append('</svg>')
 
 # ── write output ──────────────────────────────────────────────────────────────
 OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-OUTPUT.write_text("\n".join(lines), encoding="utf-8")
+OUTPUT.write_text("\n".join(out), encoding="utf-8")
 print(f"\nWrote {len(lots_out)} lots -> {OUTPUT}")
-print("Next: serve public/ and visually verify lot numbering, then update CAD_TO_SEQ if needed.")
+print("Open http://localhost:8765/ to verify lot numbering and adjust CAD_TO_SEQ if needed.")
