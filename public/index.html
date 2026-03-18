@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tennyson — Phase One</title>
+<title>Preserve West — Phase One</title>
 <style id="map-styles"></style>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Radley:ital@0;1&family=Jost:wght@300;400;500;600&display=swap');
@@ -1329,10 +1329,10 @@
 <header>
   <div>
     <h2>Phase One</h2>
-    <h1>Tennyson</h1>
+    <h1>Preserve West</h1>
   </div>
   <div class="header-right">
-    <div class="meta">20 lots</div>
+    <div class="meta">48 lots</div>
     <button class="header-btn" onclick="openSaveAsModal()" title="Export map">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       <span>Export</span>
@@ -1345,12 +1345,6 @@
     <div class="map-toolbar">
       <span class="toolbar-title">Overlays</span>
       <button class="btn active" id="btn-ov-status"   onclick="toggleLotStatusOverlay()">Lot Status</button>
-      <button class="btn"        id="btn-ov-builders"  onclick="toggleBuilderOverlay()">Builders</button>
-      <button class="btn"        id="btn-ov-plat"      onclick="togglePlatOverlay()">Plat</button>
-      <button class="btn"        id="btn-ov-topo"      onclick="toggleTopoOverlay()">Topo</button>
-      <button class="btn"        id="btn-ov-easements" onclick="toggleEasementOverlay()">Easements</button>
-      <button class="btn active" id="btn-ov-trees"     onclick="toggleTreeOverlay()">Trees</button>
-      <button class="btn"        id="btn-tree-edges"  onclick="toggleTreeEdgePick()" style="display:none">Tree Edges</button>
     </div>
     <div id="builder-legend">
       <div id="builder-list"></div>
@@ -1461,7 +1455,7 @@
     </div>
 
     <div class="jwrg-watermark">
-      <img src="svg/JWRG_Positive.svg" alt="JWRG">
+      <img src="svg/PreserveWest_Map_Logo_web.svg" alt="Preserve West">
     </div>
 
     <!-- Plat overlay fine-tune panel -->
@@ -1598,7 +1592,7 @@ let treesVisible = true;
 let treeEdgePickMode = false;
 let EXCLUDED_TREE_EDGES = new Set();
 let SPARSE_TREE_EDGES = new Set();
-const _LS_TREE_EDGES = 'tennyson-excl-tree-edges';
+const _LS_TREE_EDGES = 'preserve-west-excl-tree-edges';
 
 function zoomTo(newScale, newPanX, newPanY) {
   _zoomFrom = { scale, panX, panY };
@@ -1784,7 +1778,7 @@ function buildRoadSegments() {
     }
   });
   // Road centerline paths (Tennyson Court, Lawrence Road) — M/L segments only
-  ['tennyson-court-path', 'lawrence-road-path'].forEach(id => {
+  [].forEach(id => {  // no road centerline paths in this map
     const el = document.getElementById(id);
     if (!el) return;
     const coords = [];
@@ -1916,7 +1910,7 @@ function rebuildTreeLayer() {
 
   // Open space perimeter edges
   const osEl = document.getElementById('open-space');
-  if (osEl) {
+  if (osEl && osEl.getAttribute('points')) {
     const coords = parsePointsAttr(osEl.getAttribute('points'));
     for (let i = 0; i < coords.length; i++) {
       const [ax, ay] = coords[i];
@@ -2035,7 +2029,7 @@ function getAllCandidateEdges() {
   const result = [];
 
   const osEl = document.getElementById('open-space');
-  if (osEl) {
+  if (osEl && osEl.getAttribute('points')) {
     const coords = parsePointsAttr(osEl.getAttribute('points'));
     for (let i = 0; i < coords.length; i++) {
       const [ax, ay] = coords[i];
@@ -2219,8 +2213,8 @@ function rebuildStatusLegend() {
 async function loadResources() {
   const container = document.getElementById('map-svg-container');
   const [svgText, csvText, cssText] = await Promise.all([
-    fetch('tennyson-map.svg', {cache: 'no-store'}).then(r => r.text()),
-    fetch('tennyson-lots.csv', {cache: 'no-store'}).then(r => r.text()),
+    fetch('preserve-west-map.svg', {cache: 'no-store'}).then(r => r.text()),
+    fetch('preserve-west-lots.csv', {cache: 'no-store'}).then(r => r.text()),
     fetch('map-styles.css', {cache: 'no-store'}).then(r => r.text()),
   ]);
   document.getElementById('map-styles').textContent = cssText;
@@ -2902,7 +2896,7 @@ function attachVertexAnchors(el) {
 let _origLabelTransforms = {};
 
 function captureOrigLabelTransforms() {
-  ['label-open-space','label-rec-area','label-lawrence-road','label-tennyson-court'].forEach(id => {
+  ['label-open-space'].forEach(id => {
     const el = document.getElementById(id);
     if (el) _origLabelTransforms[id] = el.getAttribute('transform') || '';
   });
@@ -2941,7 +2935,7 @@ function copyEditChanges() {
   let text = buildCSV();
   const allOffsets = { ...labelOffsets };
   // Capture current road/area label transforms
-  ['label-open-space','label-rec-area','label-lawrence-road','label-tennyson-court'].forEach(id => {
+  ['label-open-space'].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       const t = el.getAttribute('transform') || '';
@@ -2965,7 +2959,7 @@ function copyEditChanges() {
 function _persistLabelState() {
   // Collect all current label positions into one object keyed by id/lot_id
   const state = { ...labelOffsets };
-  ['label-open-space','label-rec-area','label-lawrence-road','label-tennyson-court'].forEach(id => {
+  ['label-open-space'].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       const t = el.getAttribute('transform') || '';
@@ -3067,12 +3061,12 @@ async function saveToFiles() {
       fetch('/save', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({filename: 'tennyson-lots.csv', content: buildCSV()})
+        body: JSON.stringify({filename: 'preserve-west-lots.csv', content: buildCSV()})
       }),
       fetch('/save', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({filename: 'tennyson-map.svg', content: svgContent})
+        body: JSON.stringify({filename: 'preserve-west-map.svg', content: svgContent})
       })
     ]);
     const [csvData, svgData] = await Promise.all([csvResp.json(), svgResp.json()]);
@@ -4512,7 +4506,7 @@ async function doSaveAs() {
     }
     const svg = await _buildExportSVG(bw);
     if (exportFmt === 'svg') {
-      _triggerDownload(URL.createObjectURL(new Blob([svg], {type: 'image/svg+xml;charset=utf-8'})), 'tennyson-map.svg');
+      _triggerDownload(URL.createObjectURL(new Blob([svg], {type: 'image/svg+xml;charset=utf-8'})), 'preserve-west-map.svg');
       closeSaveAsModal();
       return;
     }
