@@ -282,7 +282,35 @@
 
   /* ── Edit mode UI buttons (HTML context only) ───────────────────── */
   #pick-elem-btn.active { background: #5a3a8e; border-color: #5a3a8e; color: #fff; }
+  #btn-poly-label.active { background: #5a3a8e; border-color: #5a3a8e; color: #fff; }
   #edit-btn.active { background: #3a4a2e; border-color: #3a4a2e; color: #fff; }
+
+  /* Polygon label panel */
+  #poly-label-panel {
+    display: none;
+    position: fixed;
+    width: 260px;
+    background: rgba(255,255,255,0.97);
+    border-radius: 8px;
+    padding: 12px 14px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    z-index: 30;
+    flex-direction: column;
+    gap: 6px;
+  }
+  #poly-label-panel.open { display: flex; }
+
+  /* Highlight any shape in label mode */
+  #map-svg.poly-label-mode *:not(svg):not(g):not(text):not(tspan):not(defs):not(filter):not(feBlend):not(feComposite):not(feGaussianBlur):not(feTurbulence):not(feColorMatrix):not(feOffset):not(feMerge):not(feMergeNode):hover {
+    cursor: crosshair !important;
+    opacity: 0.75;
+    outline: 2px solid #5a3a8e;
+    outline-offset: -1px;
+  }
+
+  #btn-undo:disabled { opacity: 0.4; cursor: default; }
 
   #edit-tools {
     display: none;
@@ -1300,6 +1328,9 @@
       <button class="edit-tool-btn" onclick="openCSSEditor()">Edit Map CSS</button>
       <button class="edit-tool-btn" onclick="openElemPanel()">&#9776; Elements</button>
       <button class="edit-tool-btn" onclick="resetAllLabels()">Reset Label Positions</button>
+      <button class="edit-tool-btn" id="btn-tree-edges" onclick="toggleTreeEdgePick()" style="display:none">&#127795; Tree Edges</button>
+      <button class="edit-tool-btn" id="btn-poly-label" onclick="togglePolyLabelMode()" style="display:none">&#11041; Label Polygons</button>
+      <button class="edit-tool-btn" id="btn-undo" onclick="polyLabelUndo()" style="display:none" disabled>&#8617; Undo</button>
       <button class="edit-tool-btn primary" onclick="copyEditChanges()">Copy Changes</button>
       <button class="edit-tool-btn primary" id="save-files-btn" onclick="saveToFiles()" style="display:none">Save to Files</button>
     </div>
@@ -1346,6 +1377,42 @@
       <div class="panel-actions">
         <button class="edit-tool-btn" onclick="closeElemStylePopover()">Cancel</button>
         <button class="edit-tool-btn primary" onclick="applyElemStyle()">Apply</button>
+      </div>
+    </div>
+
+    <!-- Polygon label/delete panel -->
+    <div id="poly-label-panel">
+      <div class="popover-header">
+        <span class="popover-tag" id="pll-elem-tag">polygon</span>
+        <button class="popover-close" onclick="closePolyLabelPanel()">&times;</button>
+      </div>
+      <div class="elem-field-row">
+        <label class="elem-field-lbl">Type</label>
+        <select id="pll-type" class="elem-field-input" onchange="pllTypeChange()">
+          <option value="lot">Lot</option>
+          <option value="open-space">Open Space</option>
+          <option value="stream-tob">River / Stream</option>
+          <option value="road-fill">Road</option>
+          <option value="easement">Easement</option>
+          <option value="__custom__">Custom…</option>
+        </select>
+      </div>
+      <div class="elem-field-row" id="pll-custom-row" style="display:none">
+        <label class="elem-field-lbl">Custom</label>
+        <input id="pll-custom" class="elem-field-input" type="text" placeholder="css-class-name">
+      </div>
+      <div class="elem-field-row">
+        <label class="elem-field-lbl">ID</label>
+        <input id="pll-id" class="elem-field-input" type="text" placeholder="e.g. 1, A, OS-1">
+      </div>
+      <div class="elem-field-row">
+        <label class="elem-field-lbl">Label</label>
+        <input id="pll-label" class="elem-field-input" type="text" placeholder="(optional — falls back to ID)">
+      </div>
+      <div class="panel-actions" style="gap:4px">
+        <button class="edit-tool-btn" onclick="closePolyLabelPanel()">Cancel</button>
+        <button class="edit-tool-btn" style="color:#b00;border-color:#d99" onclick="polyLabelDelete()">Delete</button>
+        <button class="edit-tool-btn primary" onclick="polyLabelSave()">Save</button>
       </div>
     </div>
 
@@ -1495,12 +1562,16 @@ let builderView = false;
 let lotStatusOverlay = true;
 let easementsVisible = false;
 let selectedId = null, currentFilter = 'all';
-let scale = 1.2009865115336706, panX = -99.12704415773533, panY = -109.15939821558845, isPanning = false, startPX, startPY;
+let scale = 0.5980731008038331, panX = -205.02230403317367, panY = -1071.7678184392619, isPanning = false, startPX, startPY;
 let _zoomAnimating = false, _zoomAnimStart = null;
 let _zoomFrom = {}, _zoomTo = {};
 let editMode = false, stylePickerMode = false, labelOffsets = {}, _lastRows = [], elemOverrides = {}, _classOverrides = {};
 let _drag = null;
 let _vertexDrag = null, _vertexLayer = null, _vertexEditTarget = null, _vertexDblClick = null;
+let polyLabelMode = false;
+let _polyLabelTarget = null;
+const _undoStack = [];
+const _UNDO_MAX = 50;
 const ZOOM_ANIM_MS = 260;
 const TREE_CONFIG = {
   enabled: true,
@@ -2067,6 +2138,121 @@ function toggleTreeEdgePick() {
   else { const l = document.getElementById('tree-edge-pick-layer'); if (l) l.remove(); }
 }
 
+// ── Polygon label tool ─────────────────────────────────────────────
+
+function togglePolyLabelMode() {
+  polyLabelMode = !polyLabelMode;
+  document.getElementById('btn-poly-label').classList.toggle('active', polyLabelMode);
+  document.getElementById('map-svg').classList.toggle('poly-label-mode', polyLabelMode);
+  if (!polyLabelMode) closePolyLabelPanel();
+}
+
+function openPolyLabelPanel(el, clientX, clientY) {
+  _polyLabelTarget = el;
+
+  const tag = el.tagName.toLowerCase();
+  document.getElementById('pll-elem-tag').textContent = '<' + tag + '>';
+  document.getElementById('pll-id').value = el.id || '';
+  document.getElementById('pll-label').value = el.dataset.label || '';
+
+  const existingType = el.dataset.type || '';
+  const knownTypes = ['lot','open-space','stream-tob','road-fill','easement'];
+  const sel = document.getElementById('pll-type');
+  if (knownTypes.includes(existingType)) {
+    sel.value = existingType;
+  } else if (existingType) {
+    sel.value = '__custom__';
+    document.getElementById('pll-custom').value = existingType;
+  } else {
+    sel.value = 'lot';
+  }
+  pllTypeChange();
+
+  const pw = 270, ph = 260;
+  let left = clientX + 14;
+  let top  = clientY - 20;
+  if (left + pw > window.innerWidth  - 8) left = clientX - pw - 14;
+  if (top  + ph > window.innerHeight - 8) top  = window.innerHeight - ph - 8;
+  const panel = document.getElementById('poly-label-panel');
+  panel.style.left = left + 'px';
+  panel.style.top  = Math.max(8, top) + 'px';
+  panel.classList.add('open');
+  document.getElementById('pll-id').focus();
+}
+
+function closePolyLabelPanel() {
+  document.getElementById('poly-label-panel').classList.remove('open');
+  _polyLabelTarget = null;
+}
+
+function pllTypeChange() {
+  const val = document.getElementById('pll-type').value;
+  document.getElementById('pll-custom-row').style.display = val === '__custom__' ? '' : 'none';
+}
+
+function _pllSnapshot(el) {
+  return {
+    id:        el.id,
+    className: el.className && el.className.baseVal !== undefined
+               ? el.className.baseVal : (el.getAttribute('class') || ''),
+    dataType:  el.dataset.type  || '',
+    dataLabel: el.dataset.label || '',
+  };
+}
+
+function _pllPushUndo(action) {
+  _undoStack.push(action);
+  if (_undoStack.length > _UNDO_MAX) _undoStack.shift();
+  document.getElementById('btn-undo').disabled = false;
+}
+
+function polyLabelSave() {
+  if (!_polyLabelTarget) return;
+  const el = _polyLabelTarget;
+  const before = _pllSnapshot(el);
+
+  const sel     = document.getElementById('pll-type').value;
+  const typeVal = sel === '__custom__'
+    ? document.getElementById('pll-custom').value.trim()
+    : sel;
+  const idVal    = document.getElementById('pll-id').value.trim();
+  const labelVal = document.getElementById('pll-label').value.trim();
+
+  if (idVal) el.id = idVal;
+  if (typeVal) el.dataset.type = typeVal; else delete el.dataset.type;
+  if (labelVal) el.dataset.label = labelVal; else delete el.dataset.label;
+
+  _pllPushUndo({ op: 'label', el, before, after: _pllSnapshot(el) });
+  closePolyLabelPanel();
+}
+
+function polyLabelDelete() {
+  if (!_polyLabelTarget) return;
+  const el     = _polyLabelTarget;
+  const parent = el.parentNode;
+  const next   = el.nextSibling;
+  _pllPushUndo({ op: 'delete', el, parent, next });
+  el.remove();
+  closePolyLabelPanel();
+}
+
+function polyLabelUndo() {
+  if (!_undoStack.length) return;
+  const action = _undoStack.pop();
+  if (action.op === 'label') {
+    const { el, before } = action;
+    el.id = before.id;
+    if (el.className && el.className.baseVal !== undefined)
+      el.className.baseVal = before.className;
+    else el.setAttribute('class', before.className);
+    if (before.dataType)  el.dataset.type  = before.dataType;  else delete el.dataset.type;
+    if (before.dataLabel) el.dataset.label = before.dataLabel; else delete el.dataset.label;
+  } else if (action.op === 'delete') {
+    action.parent.insertBefore(action.el, action.next);
+  }
+  document.getElementById('btn-undo').disabled = _undoStack.length === 0;
+}
+
 function toggleTreeOverlay() {
   treesVisible = !treesVisible;
   document.getElementById('btn-ov-trees').classList.toggle('active', treesVisible);
@@ -2607,7 +2793,9 @@ function toggleEditMode() {
   svg.classList.toggle('edit-mode', editMode);
   btn.classList.toggle('active', editMode);
   panel.classList.toggle('open', editMode);
-  document.getElementById('btn-tree-edges').style.display = editMode ? '' : 'none';
+  ['btn-tree-edges', 'btn-poly-label', 'btn-undo'].forEach(id => {
+    document.getElementById(id).style.display = editMode ? '' : 'none';
+  });
   if (!editMode) {
     closeCSSEditor();
     closeElemStylePopover();
@@ -2616,6 +2804,8 @@ function toggleEditMode() {
     _epSetSelected(null);
     if (stylePickerMode) toggleStylePicker();
     if (treeEdgePickMode) toggleTreeEdgePick();
+    closePolyLabelPanel();
+    if (polyLabelMode) togglePolyLabelMode();
   }
 }
 
@@ -2709,6 +2899,16 @@ function initEditHandlers() {
     if (_drag.key) labelOffsets[_drag.key] = { cx, cy };
     _drag.g.classList.remove('dragging');
     _drag = null;
+  });
+
+  // Polygon label mode: click any polygon or path to open labeler
+  svgEl.addEventListener('click', e => {
+    if (!editMode || !polyLabelMode) return;
+    const el = e.target;
+    const _noSelect = new Set(['svg','g','text','tspan','defs','filter','feBlend','feComposite','feGaussianBlur','feTurbulence','feColorMatrix','feOffset','feMerge','feMergeNode']);
+    if (_noSelect.has(el.tagName)) return;
+    e.stopPropagation();
+    openPolyLabelPanel(el, e.clientX, e.clientY);
   });
 
   // Shift+click or style picker → open element style editor

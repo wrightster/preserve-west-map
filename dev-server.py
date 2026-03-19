@@ -22,7 +22,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PUBLIC_DIR = os.path.join(BASE_DIR, 'public')
 
 # Files the client is allowed to write (relative to public/)
-ALLOWED_FILES = {'tennyson-lots.csv', 'tennyson-map.svg', 'map-styles.css'}
+ALLOWED_FILES = {'preserve-west-lots.csv', 'preserve-west-map.svg', 'map-styles.css'}
 
 
 class DevHandler(http.server.SimpleHTTPRequestHandler):
